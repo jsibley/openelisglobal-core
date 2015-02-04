@@ -35,6 +35,8 @@ public class NonConformityUpdateData {
 	private String subjectNo;
 	private Boolean newNationalId;
 	private String nationalId;
+	private Boolean newExternalId;
+	private String externalId;
 	private Boolean newDoctor = false;
 	private String doctor;
 	private String requesterSpecimanID;
@@ -68,6 +70,8 @@ public class NonConformityUpdateData {
 		STNumber = dynaForm.getString("STNumber");
 		newNationalId = (Boolean) dynaForm.get("nationalIdNew");
 		nationalId = dynaForm.getString("nationalId");
+		newExternalId = (Boolean) dynaForm.get("externalIdNew");
+		externalId = dynaForm.getString("externalId");
 		newDoctor = (Boolean) dynaForm.get("doctorNew");
 		doctor = dynaForm.getString("doctor");
 		requesterSpecimanID = dynaForm.getString("requesterSampleID");
@@ -95,6 +99,14 @@ public class NonConformityUpdateData {
 
 	public String getNationalId(){
 		return nationalId;
+	}
+
+	public Boolean getNewExternalId(){
+		return newExternalId;
+	}
+
+	public String getExternalId(){
+		return externalId;
 	}
 
 	public String getSampleId() {

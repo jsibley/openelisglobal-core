@@ -39,7 +39,6 @@
 <script type="text/javascript" src="<%=basePath%>scripts/utilities.jsp"></script>
 <script type="text/javascript" src="scripts/jquery.asmselect.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <script type="text/javascript" src="scripts/ajaxCalls.js?ver=<%= Versioning.getBuildNumber() %>"></script>
-<script type="text/javascript" src="scripts/laborder.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 
 <link rel="stylesheet" type="text/css" href="css/jquery.asmselect.css?ver=<%= Versioning.getBuildNumber() %>" />
 
@@ -191,16 +190,6 @@ function getRemoveButtonHtml( row ){
 	return "<input name='remove' value='" + "<bean:message key="sample.entry.remove.sample"/>" + "' class='textButton' onclick='removeRow(" + row + ");testAndSetSave();' id='removeButton_" + row +"' type='button' >";
 }
 
-function getCurrentTime(){
-	var date = new Date();
-
-	return (formatToTwoDigits(date.getHours()) + ":"  + formatToTwoDigits(date.getMinutes()));
-}
-
-function formatToTwoDigits( number ){
-	return number > 9 ? number : "0" + number;
-}
-
 function removeAllRows(){
 	var table = $("samplesAddedTable");
 	var rows = table.rows.length;
@@ -210,6 +199,8 @@ function removeAllRows(){
 	}
 
 	$("samplesAdded").hide();
+	
+	testAndSetSave();
 }
 
 function removeRow( row ){

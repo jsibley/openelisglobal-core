@@ -52,11 +52,12 @@ public class SubjectNumberValidationProvider extends BaseValidationProvider{
         String STNumber = numberType.equals( "STnumber" ) ? number : null;
         String subjectNumber = numberType.equals( "subjectNumber" ) ? number : null;
         String nationalId = numberType.equals( "nationalId" ) ? number : null;
+        String externalId = numberType.equals("externalId") ? number : null;
 
 
         //We just care about duplicates but blank values do not count as duplicates
-        if( !( GenericValidator.isBlankOrNull( STNumber ) && GenericValidator.isBlankOrNull( subjectNumber ) && GenericValidator.isBlankOrNull( nationalId ) ) ){
-            List<PatientSearchResults> results = new SearchResultsDAOImp().getSearchResults( null, null, STNumber, subjectNumber, nationalId, null, null, null );
+        if( !( GenericValidator.isBlankOrNull( STNumber ) && GenericValidator.isBlankOrNull( subjectNumber ) && GenericValidator.isBlankOrNull( nationalId ) && GenericValidator.isBlankOrNull( externalId ) ) ){
+            List<PatientSearchResults> results = new SearchResultsDAOImp().getSearchResults( null, null, STNumber, subjectNumber, nationalId, externalId, null, null );
 
 
             boolean allowDuplicates = ConfigurationProperties.getInstance().isPropertyValueEqual( ConfigurationProperties.Property.ALLOW_DUPLICATE_SUBJECT_NUMBERS, "true" );

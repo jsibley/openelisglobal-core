@@ -18,29 +18,42 @@
 package us.mn.state.health.lims.common.provider.query;
 
 import org.apache.commons.validator.GenericValidator;
+
 import us.mn.state.health.lims.common.action.IActionConstants;
+import us.mn.state.health.lims.common.formfields.FormFields;
+import us.mn.state.health.lims.common.formfields.FormFields.Field;
 import us.mn.state.health.lims.common.provider.query.workerObjects.PatientSearchLocalAndClinicWorker;
 import us.mn.state.health.lims.common.provider.query.workerObjects.PatientSearchLocalWorker;
 import us.mn.state.health.lims.common.provider.query.workerObjects.PatientSearchWorker;
 import us.mn.state.health.lims.common.services.ObservationHistoryService;
+import us.mn.state.health.lims.common.services.StatusService;
 import us.mn.state.health.lims.common.services.ObservationHistoryService.ObservationType;
+import us.mn.state.health.lims.common.services.StatusService.SampleStatus;
 import us.mn.state.health.lims.common.services.PatientService;
 import us.mn.state.health.lims.common.servlet.validation.AjaxServlet;
 import us.mn.state.health.lims.common.util.ConfigurationProperties;
 import us.mn.state.health.lims.common.util.ConfigurationProperties.Property;
 import us.mn.state.health.lims.login.valueholder.UserSessionData;
+import us.mn.state.health.lims.patient.util.PatientUtil;
 import us.mn.state.health.lims.patient.valueholder.Patient;
 import us.mn.state.health.lims.sample.dao.SampleDAO;
 import us.mn.state.health.lims.sample.daoimpl.SampleDAOImpl;
 import us.mn.state.health.lims.sample.valueholder.Sample;
 import us.mn.state.health.lims.samplehuman.dao.SampleHumanDAO;
 import us.mn.state.health.lims.samplehuman.daoimpl.SampleHumanDAOImpl;
+import us.mn.state.health.lims.sampleitem.dao.SampleItemDAO;
+import us.mn.state.health.lims.sampleitem.daoimpl.SampleItemDAOImpl;
+import us.mn.state.health.lims.sampleitem.valueholder.SampleItem;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PatientSearchProvider extends BaseQueryProvider{
 
@@ -51,10 +64,14 @@ public class PatientSearchProvider extends BaseQueryProvider{
 
 		String lastName = request.getParameter("lastName");
 		String firstName = request.getParameter("firstName");
+        if (FormFields.getInstance().useField(Field.SINGLE_NAME_FIELD)) {
+        	firstName = "%" + firstName + "%";
+        }
 		String STNumber = request.getParameter("STNumber");
         // N.B. This is a bad name, it is other than STnumber
 		String subjectNumber = request.getParameter("subjectNumber");
 		String nationalID = request.getParameter("nationalID");
+		String externalID = request.getParameter("externalID");
 		String labNumber = request.getParameter("labNumber");
 		String guid = request.getParameter("guid");
 		String suppressExternalSearch = request.getParameter("suppressExternalSearch");
@@ -79,7 +96,7 @@ public class PatientSearchProvider extends BaseQueryProvider{
 			PatientSearchWorker worker = getAppropriateWorker(request, "true".equals(suppressExternalSearch));
 
 			if(worker != null){
-				result = worker.createSearchResultXML(lastName, firstName, STNumber, subjectNumber, nationalID, patientID, guid, xml);
+				result = worker.createSearchResultXML(lastName, firstName, STNumber, subjectNumber, nationalID, externalID, patientID, guid, xml);
 			}else{
 				result = INVALID;
 				xml.append("System is not configured correctly for searching for patients. Contact Administrator");
@@ -98,7 +115,7 @@ public class PatientSearchProvider extends BaseQueryProvider{
 				service.getGender(),
 				service.getDOB(),
 				service.getNationalId(),
-				patient.getExternalId(),
+				service.getExternalId(),
 				service.getSTNumber(),
 				service.getSubjectNumber(),
 				service.getGUID(),
@@ -111,8 +128,15 @@ public class PatientSearchProvider extends BaseQueryProvider{
 		Sample sample = sampleDAO.getSampleByAccessionNumber(labNumber);
 
 		if(sample != null && !GenericValidator.isBlankOrNull(sample.getId())){
-			SampleHumanDAO sampleHumanDAO = new SampleHumanDAOImpl();
-			return sampleHumanDAO.getPatientForSample(sample);
+			// Handle configurations where orders can be entered without specimens (i.e. VN), we don't want any patient info returned for those orders
+			SampleItemDAO sampleItemDAO = new SampleItemDAOImpl();
+			Set<Integer> includedSampleStatusList = new HashSet<Integer>();
+			includedSampleStatusList.add(Integer.parseInt(StatusService.getInstance().getStatusID(SampleStatus.Entered)));
+			List<SampleItem> sampleItemList = sampleItemDAO.getSampleItemsBySampleIdAndStatus(sample.getId(), includedSampleStatusList);
+			if (!sampleItemList.isEmpty()) {
+				SampleHumanDAO sampleHumanDAO = new SampleHumanDAOImpl();
+				return sampleHumanDAO.getPatientForSample(sample);
+			}
 		}
 
 		return new Patient();

@@ -17,8 +17,12 @@
 package us.mn.state.health.lims.common.services;
 
 import org.apache.commons.validator.GenericValidator;
+
+import us.mn.state.health.lims.common.formfields.FormFields;
+import us.mn.state.health.lims.common.formfields.FormFields.Field;
 import us.mn.state.health.lims.common.util.*;
 import us.mn.state.health.lims.common.util.ConfigurationProperties.Property;
+import us.mn.state.health.lims.dictionary.dao.DictionaryDAO;
 import us.mn.state.health.lims.dictionary.daoimpl.DictionaryDAOImpl;
 import us.mn.state.health.lims.dictionary.valueholder.Dictionary;
 import us.mn.state.health.lims.gender.daoimpl.GenderDAOImpl;
@@ -33,6 +37,9 @@ import us.mn.state.health.lims.qaevent.daoimpl.QaEventDAOImpl;
 import us.mn.state.health.lims.qaevent.valueholder.QaEvent;
 import us.mn.state.health.lims.referral.daoimpl.ReferralReasonDAOImpl;
 import us.mn.state.health.lims.referral.valueholder.ReferralReason;
+import us.mn.state.health.lims.sourceofsample.dao.SourceOfSampleDAO;
+import us.mn.state.health.lims.sourceofsample.daoimpl.SourceOfSampleDAOImpl;
+import us.mn.state.health.lims.sourceofsample.valueholder.SourceOfSample;
 import us.mn.state.health.lims.test.daoimpl.TestDAOImpl;
 import us.mn.state.health.lims.test.daoimpl.TestSectionDAOImpl;
 import us.mn.state.health.lims.test.valueholder.Test;
@@ -52,7 +59,16 @@ public class DisplayListService implements LocaleChangeListener {
 		MINS,
         SAMPLE_TYPE_ACTIVE,
         SAMPLE_TYPE_INACTIVE,
+		SAMPLE_SOURCE,
 		INITIAL_SAMPLE_CONDITION,
+		SAMPLE_ENTRY_INIT_COND_FORM_ERRORS,
+		SAMPLE_ENTRY_INIT_COND_LABEL_ERRORS,
+		SAMPLE_ENTRY_INIT_COND_MISC,
+		SAMPLE_ENTRY_INIT_COND_OTHER,
+		SAMPLE_ENTRY_REJECTION_FORM_ERRORS,
+		SAMPLE_ENTRY_REJECTION_LABEL_ERRORS,
+		SAMPLE_ENTRY_REJECTION_MISC,
+		SAMPLE_ENTRY_REJECTION_OTHER,
         SAMPLE_PATIENT_PAYMENT_OPTIONS,
 		PATIENT_HEALTH_REGIONS, 
 		PATIENT_MARITAL_STATUS, 
@@ -83,7 +99,16 @@ public class DisplayListService implements LocaleChangeListener {
 		typeToListMap.put(ListType.MINS, createMinList());
         typeToListMap.put(ListType.SAMPLE_TYPE_ACTIVE, createSampleTypeList(false));
         typeToListMap.put(ListType.SAMPLE_TYPE_INACTIVE, createSampleTypeList(true));
+		typeToListMap.put(ListType.SAMPLE_SOURCE, createSampleSourceList());
         typeToListMap.put(ListType.INITIAL_SAMPLE_CONDITION, createFromDictionaryCategory("specimen reception condition"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_FORM_ERRORS, createFromDictionaryCategory("Initial Condition - Request Form Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_LABEL_ERRORS, createFromDictionaryCategory("Initial Condition - Labeling Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_MISC, createFromDictionaryCategory("Initial Condition - Miscellaneous"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_OTHER, createFromDictionaryCategory("Initial Condition - Other"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_FORM_ERRORS, createSampleEntryRejectionList("Rejection Reason(s)", "Request Form Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_LABEL_ERRORS, createSampleEntryRejectionList("Rejection Reason(s)", "Labeling Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_MISC, createSampleEntryRejectionList("Rejection Reason(s)", "Miscellaneous"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_OTHER, createSampleEntryRejectionList("Rejection Reason(s)", "Other"));
 		typeToListMap.put(ListType.PATIENT_HEALTH_REGIONS,createPatientHealthRegions());
 		typeToListMap.put(ListType.PATIENT_MARITAL_STATUS,createFromDictionaryCategory("Marital Status Demographic Information"));
 		typeToListMap.put(ListType.PATIENT_NATIONALITY,createFromDictionaryCategory("Nationality Demographic Information"));
@@ -114,6 +139,14 @@ public class DisplayListService implements LocaleChangeListener {
         typeToListMap.put(ListType.SAMPLE_TYPE_ACTIVE, createSampleTypeList(false));
         typeToListMap.put(ListType.SAMPLE_TYPE_INACTIVE, createSampleTypeList(true));
         typeToListMap.put(ListType.INITIAL_SAMPLE_CONDITION, createFromDictionaryCategory("specimen reception condition"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_FORM_ERRORS, createFromDictionaryCategory("Initial Condition - Request Form Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_LABEL_ERRORS, createFromDictionaryCategory("Initial Condition - Labeling Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_MISC, createFromDictionaryCategory("Initial Condition - Miscellaneous"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_INIT_COND_OTHER, createFromDictionaryCategory("Initial Condition - Other"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_FORM_ERRORS, createSampleEntryRejectionList("Rejection Reason(s)", "Request Form Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_LABEL_ERRORS, createSampleEntryRejectionList("Rejection Reason(s)", "Labeling Errors"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_MISC, createSampleEntryRejectionList("Rejection Reason(s)", "Miscellaneous"));
+		typeToListMap.put(ListType.SAMPLE_ENTRY_REJECTION_OTHER, createSampleEntryRejectionList("Rejection Reason(s)", "Other"));
         typeToListMap.put(ListType.PATIENT_HEALTH_REGIONS,createPatientHealthRegions());
         typeToListMap.put(ListType.PATIENT_MARITAL_STATUS,createFromDictionaryCategory("Marital Status Demographic Information"));
         typeToListMap.put(ListType.PATIENT_NATIONALITY,createFromDictionaryCategory("Nationality Demographic Information"));
@@ -157,6 +190,32 @@ public class DisplayListService implements LocaleChangeListener {
         list.addAll( getNumberedList( listType ) );
         return list ;
     }
+
+	private static List<IdValuePair> createSampleEntryRejectionList(String type, String category) {
+		List<IdValuePair> conditionList = new ArrayList<IdValuePair>();
+		DictionaryDAO dictionaryDAO = new DictionaryDAOImpl();
+		QaEventDAO qaEventDAO = new QaEventDAOImpl();
+		
+		Dictionary conditionType = dictionaryDAO.getDictionaryEntrysByNameAndCategoryDescription(type, "QA Event Type");
+		Dictionary conditionCategory = dictionaryDAO.getDictionaryEntrysByNameAndCategoryDescription(category, "QA Event Category");
+
+		if (conditionType != null && conditionCategory != null) {
+			List<QaEvent> qaEventList = qaEventDAO.getQaEventsByTypeAndCategory(conditionType.getId(), conditionCategory.getId());
+
+			Collections.sort(qaEventList, new Comparator<QaEvent>() {
+				@Override
+				public int compare(QaEvent o1, QaEvent o2) {
+					return (int) (Long.parseLong(o1.getId()) - Long.parseLong(o2.getId()));
+				}});
+
+			for (QaEvent qaEvent : qaEventList) {
+				conditionList.add(new IdValuePair(qaEvent.getId(), qaEvent.getLocalizedName()));
+			}
+		}
+
+		return conditionList;
+	}
+
     public static List<IdValuePair> getDictionaryListByCategory(String category) {
        List<IdValuePair> list = dictionaryToListMap.get( category );
         if( list == null){
@@ -355,6 +414,20 @@ public class DisplayListService implements LocaleChangeListener {
 		return filteredList;
 	}
 
+	@SuppressWarnings("unchecked")
+	private static List<IdValuePair> createSampleSourceList() {
+		SourceOfSampleDAO sourceOfSampleDAO = new SourceOfSampleDAOImpl();
+		List<SourceOfSample> list = sourceOfSampleDAO.getSourcesForDomain(TypeOfSampleDAO.SampleDomain.HUMAN);
+
+		List<IdValuePair> filteredList = new ArrayList<IdValuePair>();
+
+		for (SourceOfSample source : list) {
+			filteredList.add(new IdValuePair(source.getId(), source.getDescription()));
+		}
+
+		return filteredList;
+	}
+
 	private static List<IdValuePair> createHourList() {
 		List<IdValuePair> hours = new ArrayList<IdValuePair>();
 
@@ -447,11 +520,17 @@ public class DisplayListService implements LocaleChangeListener {
 
         //N.B.  If the order is to be changed just change the order but keep the id:value pairing the same
         searchCriteria.add(new IdValuePair("0", StringUtil.getMessageForKey( "label.select.search.by" )));
-        searchCriteria.add(new IdValuePair("2", "1. " + StringUtil.getMessageForKey( "label.select.last.name" )));
-        searchCriteria.add(new IdValuePair("1", "2. " + StringUtil.getMessageForKey("label.select.first.name")));
-        searchCriteria.add(new IdValuePair("3", "3. " + StringUtil.getMessageForKey("label.select.last.first.name")));
-        searchCriteria.add(new IdValuePair("4", "4. " + StringUtil.getMessageForKey("label.select.patient.ID")));
-        searchCriteria.add(new IdValuePair("5", "5. " + StringUtil.getContextualMessageForKey( "quick.entry.accession.number" )));
+        if (FormFields.getInstance().useField(Field.SINGLE_NAME_FIELD)) {
+            searchCriteria.add(new IdValuePair("1", "1. " + StringUtil.getMessageForKey("label.select.single.name")));
+            searchCriteria.add(new IdValuePair("4", "2. " + StringUtil.getMessageForKey("label.select.patient.ID")));
+            searchCriteria.add(new IdValuePair("5", "3. " + StringUtil.getContextualMessageForKey( "quick.entry.accession.number" )));
+        } else {
+	        searchCriteria.add(new IdValuePair("2", "1. " + StringUtil.getMessageForKey( "label.select.last.name" )));
+    	    searchCriteria.add(new IdValuePair("1", "2. " + StringUtil.getMessageForKey("label.select.first.name")));
+        	searchCriteria.add(new IdValuePair("3", "3. " + StringUtil.getMessageForKey("label.select.last.first.name")));
+        	searchCriteria.add(new IdValuePair("4", "4. " + StringUtil.getMessageForKey("label.select.patient.ID")));
+        	searchCriteria.add(new IdValuePair("5", "5. " + StringUtil.getContextualMessageForKey( "quick.entry.accession.number" )));
+        }
 
         return searchCriteria;
     }

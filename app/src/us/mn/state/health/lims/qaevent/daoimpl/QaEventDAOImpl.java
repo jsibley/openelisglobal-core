@@ -369,5 +369,24 @@ public class QaEventDAOImpl extends BaseDAOImpl implements QaEventDAO {
 			throw new LIMSRuntimeException("Error in duplicateQaEventExists()", e);
 		}
 	}
-	
+
+	public List<QaEvent> getQaEventsByTypeAndCategory(String type, String category) throws LIMSRuntimeException {
+		List<QaEvent> list = new ArrayList<QaEvent>();
+		try {
+			String sql = "from QaEvent qe where qe.type.id = :param and qe.category.id = :param2";
+			org.hibernate.Query query = HibernateUtil.getSession().createQuery(sql);
+			query.setInteger("param", Integer.parseInt(type));
+			query.setInteger("param2", Integer.parseInt(category));
+
+			list = query.list();
+			HibernateUtil.getSession().flush();
+			HibernateUtil.getSession().clear();
+		} catch (Exception e) {
+			//bugzilla 2154
+			LogEvent.logError("QaEventDAOImpl","getQaEventsByTypeAndCategory()",e.toString());
+			throw new LIMSRuntimeException(
+					"Error in QaEvent getQaEventsByTypeAndCategory(String type, String category)", e);
+		}
+		return list;
+	}
 }

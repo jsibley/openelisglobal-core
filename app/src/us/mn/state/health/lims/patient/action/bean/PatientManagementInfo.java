@@ -49,12 +49,16 @@ public class PatientManagementInfo implements Serializable {
 	private String city;
 	private String commune;
 	private String addressDepartment;
+	private String addressDistrict;
+	private String addressWard;
 	private String birthDateForDisplay = "";
 	private String gender;
 	private String patientType = "";
 	private static List<PatientType> patientTypes;
 	private String insuranceNumber;
+	private String chartNumber;
 	private String occupation;
+	private String employerName;
 	private String phone;
 	private String healthRegion;
 	private String education;
@@ -64,13 +68,15 @@ public class PatientManagementInfo implements Serializable {
 	private String otherNationality;
 	private static List<IdValuePair> genders;
 	private static List<Dictionary> addressDepartments;
+	private static List<Dictionary> addressCities;
+	private static List<Dictionary> addressDistricts;
 	private static List<IdValuePair> healthRegions;
 	private static List<IdValuePair> educationList;
 	private static List<IdValuePair> maritialList;
 	private static List<IdValuePair> nationalityList;
     private boolean readOnly = false;
     private String age;
-
+    private String externalId;
 	
 	public String getCurrentDate() {
 		return currentDate;
@@ -192,11 +198,23 @@ public class PatientManagementInfo implements Serializable {
 	public void setInsuranceNumber(String insuranceNumber) {
 		this.insuranceNumber = insuranceNumber;
 	}
+	public String getChartNumber() {
+		return chartNumber;
+	}
+	public void setChartNumber(String chartNumber) {
+		this.chartNumber = chartNumber;
+	}
 	public String getOccupation() {
 		return occupation;
 	}
 	public void setOccupation(String occupation) {
 		this.occupation = occupation;
+	}
+	public String getEmployerName() {
+		return employerName;
+	}
+	public void setEmployerName(String employerName) {
+		this.employerName = employerName;
 	}
 	public void setGenders(List<IdValuePair> genderList) {
 		genders = genderList;
@@ -229,6 +247,20 @@ public class PatientManagementInfo implements Serializable {
 	public String getAddressDepartment() {
 		return addressDepartment;
 	}
+	public void setAddressDistrict(String addressDistrict) {
+		this.addressDistrict = addressDistrict;
+	}
+
+	public String getAddressDistrict() {
+		return addressDistrict;
+	}
+	public void setAddressWard(String addressWard) {
+		this.addressWard = addressWard;
+	}
+
+	public String getAddressWard() {
+		return addressWard;
+	}
 
 	public List<Dictionary> getAddressDepartments() {
 		if( addressDepartments == null){
@@ -236,6 +268,20 @@ public class PatientManagementInfo implements Serializable {
 		}
 
 		return addressDepartments;
+	}
+	public List<Dictionary> getCities() {
+		if( addressCities == null){
+			addressCities = new DictionaryDAOImpl().getDictionaryEntrysByCategory("description", "cities", true);
+		}
+
+		return addressCities;
+	}
+	public List<Dictionary> getDistricts() {
+		if( addressDistricts == null){
+			addressDistricts = new DictionaryDAOImpl().getDictionaryEntrysByCategory("description", "districts", true);
+		}
+
+		return addressDistricts;
 	}
 	public String getPhone() {
 		return phone;
@@ -337,4 +383,10 @@ public class PatientManagementInfo implements Serializable {
     public void setAge( String age ){
         this.age = age;
     }
+	public String getExternalId() {
+		return externalId;
+	}
+	public void setExternalId(String externalId) {
+		this.externalId = externalId;
+	}
 }

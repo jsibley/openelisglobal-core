@@ -91,6 +91,8 @@ public abstract class PatientReport extends Report{
 
     private static final DecimalFormat twoDecimalFormat = new DecimalFormat( "#.##" );
     private static String ADDRESS_DEPT_ID;
+    private static String ADDRESS_WARD_ID;
+    private static String ADDRESS_DISTRICT_ID;
     private static String ADDRESS_COMMUNE_ID;
     protected String currentContactInfo = "";
     protected String currentSiteInfo = "";
@@ -124,6 +126,8 @@ public abstract class PatientReport extends Report{
 
     protected String patientDept = null;
     protected String patientCommune = null;
+    protected String patientWard = null;
+    protected String patientDistrict = null;
 
     protected IPatientService patientService;
     protected Provider currentProvider;
@@ -144,6 +148,10 @@ public abstract class PatientReport extends Report{
                 ADDRESS_DEPT_ID = part.getId();
             }else if( "commune".equals( part.getPartName() ) ){
                 ADDRESS_COMMUNE_ID = part.getId();
+            }else if( "ward".equals( part.getPartName() ) ){
+                ADDRESS_WARD_ID = part.getId();
+            }else if( "district".equals( part.getPartName() ) ){
+                ADDRESS_DISTRICT_ID = part.getId();
             }
         }
     }
@@ -263,6 +271,8 @@ public abstract class PatientReport extends Report{
 
         patientDept = "";
         patientCommune = "";
+        patientWard = "";
+        patientDistrict = "";
         if( ADDRESS_DEPT_ID != null ){
             PersonAddress deptAddress = addressDAO.getByPersonIdAndPartId( patientService.getPerson().getId(), ADDRESS_DEPT_ID );
 
@@ -277,6 +287,22 @@ public abstract class PatientReport extends Report{
             if( deptAddress != null ){
                 patientCommune = deptAddress.getValue();
             }
+        }
+
+        if( ADDRESS_WARD_ID != null ){
+            PersonAddress deptAddress = addressDAO.getByPersonIdAndPartId( patientService.getPerson().getId(), ADDRESS_WARD_ID );
+
+            if( deptAddress != null ){
+                patientWard = deptAddress.getValue();
+            }
+        }
+
+        if( ADDRESS_DISTRICT_ID != null ){
+            PersonAddress deptAddress = addressDAO.getByPersonIdAndPartId( patientService.getPerson().getId(), ADDRESS_DISTRICT_ID );
+
+            if( deptAddress != null ){
+                patientDistrict = deptAddress.getValue();
+    		}
         }
 
     }
@@ -726,6 +752,8 @@ public abstract class PatientReport extends Report{
         setPatientName( data );
         data.setDept( patientDept );
         data.setCommune( patientCommune );
+        data.setWard( patientWard );
+        data.setDistrict( patientDistrict );
         data.setStNumber( getLazyPatientIdentity( STNumber, PatientService.PATIENT_ST_IDENTITY ) );
         data.setSubjectNumber( getLazyPatientIdentity( subjectNumber, PatientService.PATIENT_SUBJECT_IDENTITY ) );
         data.setHealthRegion( getLazyPatientIdentity( healthRegion, PatientService.PATIENT_HEALTH_REGION_IDENTITY ) );

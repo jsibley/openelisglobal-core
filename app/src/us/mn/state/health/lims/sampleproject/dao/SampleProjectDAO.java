@@ -37,7 +37,7 @@ public interface SampleProjectDAO extends BaseDAO {
 
 	public boolean insertData(SampleProject sampleProj) throws LIMSRuntimeException;
 
-	public void deleteData(List sampleProjs) throws LIMSRuntimeException;
+	public void deleteData(List sampleProjs, String activeUserId) throws LIMSRuntimeException;
 
 	public void getData(SampleProject sampleProj) throws LIMSRuntimeException;
 
@@ -46,6 +46,10 @@ public interface SampleProjectDAO extends BaseDAO {
 	public List getSampleProjectsByProjId(String projId) throws LIMSRuntimeException;
 
 	public SampleProject getSampleProjectBySampleId(String id) throws LIMSRuntimeException;
+
+    public void insertOrUpdateData(SampleProject sampleProject) throws LIMSRuntimeException;
+
+    public List<SampleProject> getSampleProjectListBySampleId(String id) throws LIMSRuntimeException;
 
     /**
      * @param locationId

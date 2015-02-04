@@ -5,6 +5,32 @@
 
 
 <tiles-definitions>
+ 	<!-- START BATCH ENTRY -->
+    <definition name="batchEntryDefinition" extends="baseDefinition">
+         <put name="preSelectionHeader" value="/pages/common/actionSuccess.jsp" />
+         <put name="body" value="batchEntryCore" /> 
+         <put name="footer" value="/pages/common/saveCancelFooterButtons.jsp" /> 
+    </definition>    
+    <definition name="batchEntryCore" path="/pages/sample/quickEntry.jsp">
+         <put name="addSampleModal" value="addSampleModalCore" />
+		 <put name="addSample" value="/pages/sample/sampleAdd.jsp"/>
+    </definition>
+    <definition name="addSampleModalCore" path="/pages/sample/sampleAddModal.jsp">
+         <put name="printLabelsModal" value="/pages/sample/printLabelsContent.jsp" /> 
+    </definition>
+	<!-- END BATCH ENTRY -->
+
+	<!-- SAMPLE LABEL PRINT -->
+    <definition name="printLabelsDefinition" extends="baseDefinition">
+         <put name="preSelectionHeader" value="/pages/common/actionSuccess.jsp" />
+         <put name="body" value="printLabelsCore" /> 
+         <put name="footer" value="/pages/common/footer.jsp" /> 
+    </definition>    
+    <definition name="printLabelsCore" path="/pages/sample/printLabelsCore.jsp">
+         <put name="printLabelsContent" value="/pages/sample/printLabelsContent.jsp" />
+    </definition>    
+	<!-- END SAMPLE LABEL PRINT -->
+
     <definition name="databaseCleaningDefinition" extends="baseMenuDefinition">
 		<put name="body" value="/pages/common/databaseCleaner.jsp"/>
     </definition>
@@ -31,6 +57,8 @@
 		<put name="addSample" value="/pages/sample/sampleAdd.jsp"/>
 		<put name="patientInfo" value="patientManagementCore"/>
 		<put name="patientClinicalInfo" value="/pages/patient/patientClinicalInfo.jsp"/>
+        <put name="addSampleModal" value="addSampleModalCore" />
+        <put name="displayOrderItemsInPatientManagement" value="true" />
 	</definition>
 
     <definition name="sampleEntryByProjectDefinition" extends="baseDefinition">
@@ -104,6 +132,7 @@
         <put name="sampleOrder" value="/pages/sample/sampleOrder.jsp" />
         <put name="sampleConfirmationOrder" value="sampleConfirmationOrder.jsp" />
 		<put name="addSample" value="/pages/sample/sampleAdd.jsp"/>
+        <put name="addSampleModal" value="addSampleModalCore" />
 	</definition>
 
 	<definition name="patientManagementCore" path="/pages/patient/patientManagement.jsp">
@@ -129,6 +158,7 @@
     <definition name="auditTrailCore" path="/pages/audittrail/auditTrailView.jsp">
         <put name="orderInfo" value="/pages/sample/sampleOrder.jsp" />
         <put name="patientInfo" value="patientManagementNoSearchCore" />
+        <put name="displayOrderItemsInPatientManagement" value="true" />
     </definition>
     <definition name="auditTrailViewDefinition" extends="baseMenuDefinition">
 		<put name="body" value="auditTrailCore"/>
@@ -223,6 +253,7 @@
 	<definition name="haitiMasterListsPageRightDefinition" extends="masterListsPageRightDefinition">
          <put name="rightTypeOfSampleTest" value="typeOfSampleTestMenuDefinition"/>
          <put name="rightTypeOfSamplePanel" value="typeOfSamplePanelMenuDefinition"/>
+         <put name="rightTypeOfSampleSource" value="typeOfSampleSourceMenuDefinition"/>
          <put name="rightPatientType" value="patientTypeMenuDefinition"/>
          <put name="rightResultLimits" value="resultLimitsMenuDefinition"/>
  		 <put name="rightRole" value="roleMenuDefinition"/>
@@ -240,6 +271,10 @@
        <put name="body" value="/pages/typeofsample/typeOfSamplePanelMenu.jsp"/>
     </definition>
 
+	<definition name="typeOfSampleSourceMenuDefinition" extends="baseMenuSelectListDefinition">
+       <put name="body" value="/pages/typeofsample/typeOfSampleSourceMenu.jsp"/>
+    </definition>
+
 	<definition name="patientTypeMenuDefinition" extends="baseMenuSelectListDefinition">
        <put name="body" value="/pages/patienttype/patientTypeMenu.jsp"/>
     </definition>
@@ -250,6 +285,10 @@
 
 	<definition name="typeOfSamplePanelDefinition" extends="baseDefinition">
          <put name="body" value="/pages/typeofsample/typeOfSamplePanel.jsp"/>
+    </definition>
+
+	<definition name="typeOfSampleSourceDefinition" extends="baseDefinition">
+         <put name="body" value="/pages/typeofsample/typeOfSampleSource.jsp"/>
     </definition>
 
 	<definition name="patientTypeDefinition" extends="baseDefinition">

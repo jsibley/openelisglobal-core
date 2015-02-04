@@ -36,6 +36,11 @@
     boolean requesterLastNameRequired = false;
     boolean acceptExternalOrders = false;
     IAccessionNumberValidator accessionNumberValidator;
+    boolean useModalSampleEntry = false;
+	boolean useSubmitterNumber = false;
+	boolean useSingleNameField = false;
+	boolean useCompactLayout = false;
+	boolean labNoUsedIfSpecimens = false;
 %>
 <%
     path = request.getContextPath();
@@ -52,6 +57,14 @@
     accessionNumberValidator = new AccessionNumberValidatorFactory().getValidator();
     requesterLastNameRequired = FormFields.getInstance().useField( Field.SampleEntryRequesterLastNameRequired );
     acceptExternalOrders = ConfigurationProperties.getInstance().isPropertyValueEqual( Property.ACCEPT_EXTERNAL_ORDERS, "true" );
+	useModalSampleEntry = FormFields.getInstance().useField( Field.SAMPLE_ENTRY_MODAL_VERSION );
+	useSubmitterNumber = FormFields.getInstance().useField(Field.SUBMITTER_NUMBER);
+	useSingleNameField = FormFields.getInstance().useField(Field.SINGLE_NAME_FIELD);
+	useCompactLayout = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_COMPACT_LAYOUT);
+	labNoUsedIfSpecimens = FormFields.getInstance().useField(Field.LAB_NUMBER_USED_ONLY_IF_SPECIMENS);
+	java.util.Locale locale = (java.util.Locale)request.getSession().getAttribute(org.apache.struts.Globals.LOCALE_KEY);
+	String clinicNA = us.mn.state.health.lims.common.util.resources.ResourceLocator.getInstance().getMessageResources().getMessage(
+				  	  locale, "quick.entry.clinic.name.not.found");
 
 %>
 
@@ -68,11 +81,18 @@
 <script type="text/javascript">
     var useReferralSiteList = <%= useReferralSiteList%>;
     var useReferralSiteCode = <%= useReferralSiteCode %>;
+    var useProjectName = <%= FormFields.getInstance().useField( Field.PROJECT_OR_NAME ) %>;
+    var useProject2Name = <%= FormFields.getInstance().useField( Field.PROJECT2_OR_NAME ) %>;
+    var zplData = "";
 
     function checkAccessionNumber(accessionNumber) {
         //check if empty
         if (!fieldIsEmptyById("labNo")) {
+        	<% if (!labNoUsedIfSpecimens) { %>
             validateAccessionNumberOnServer(false, false, accessionNumber.id, accessionNumber.value, processAccessionSuccess, null);
+            <% } else { %>
+            validateAccessionNumberOnServer(true, false, accessionNumber.id, accessionNumber.value, processAccessionSuccess, null);
+            <% } %>
         }
         else {
              selectFieldErrorDisplay(false, $("labNo"));
@@ -87,14 +107,23 @@
         var message = xhr.responseXML.getElementsByTagName("message").item(0);
         var success = false;
 
+    	<% if (!labNoUsedIfSpecimens) { %>
         if (message.firstChild.nodeValue == "valid") {
+		<% } else { %>
+		if (message.firstChild.nodeValue == "valid" || message.firstChild.nodeValue == "SAMPLE_NOT_FOUND"){
+		<% } %>
             success = true;
         }
         var labElement = formField.firstChild.nodeValue;
         selectFieldErrorDisplay(success, $(labElement));
 
         if (!success) {
+        	<% if (!labNoUsedIfSpecimens) { %>
             alert(message.firstChild.nodeValue);
+    		<% } else { %>
+    		alert( "<bean:message key="sample.entry.invalid.accession.number"/>" );
+    		$(labElement).focus();
+    		<% } %>
         }
 
         setCorrectSave();
@@ -174,6 +203,103 @@
         setCorrectSave();
     }
 
+    function validateProjectIdOrName(field) {
+    	if ($F(field) == '' || $F(field) == null) {
+    		selectFieldErrorDisplay(true, field);
+    		setSampleFieldValidity(true, field.id);
+    		$(field.id + 'Display').innerHTML = "";
+    		$(field.id + 'Other').value = "";
+    		setCorrectSave();
+     	} else {
+     		new Ajax.Request (
+               	'ajaxXML',  //url
+                 	{//options
+                  	method: 'get', //http method
+                  	parameters: 'provider=ProjectIdOrNameValidationProvider&field=' + field.id + '&id=' + encodeURIComponent($F(field)),      //request parameters
+                  	//indicator: 'throbbing'
+                  	onSuccess:  processProjectIdOrNameSuccess,
+                  	//onFailure:  processFailure
+                 	}
+              	);
+     	}
+    }
+
+    function processProjectIdOrNameSuccess(xhr) {
+    	var formField = xhr.responseXML.getElementsByTagName("formfield").item(0).firstChild.nodeValue;
+    	var message = xhr.responseXML.getElementsByTagName("message").item(0).firstChild.nodeValue;
+    	var success = false;
+
+    	if (message.substring(0,5) == "valid"){
+    		success = true;
+    	}
+
+    	selectFieldErrorDisplay( success, $(formField));
+    	setSampleFieldValidity( success, formField );
+
+    	if(success) {
+    		$(formField + 'Display').innerHTML = message.substring(5);
+    		$(formField + 'Other').value = message.substring(5);
+    	} else {
+    		$(formField + 'Display').innerHTML = "";
+    		$(formField + 'Other').value = "";
+    	}
+    	setCorrectSave();
+    }
+
+    function validateOrganizationLocalAbbreviation() {
+        new Ajax.Request (
+               'ajaxXML',  //url
+                 {//options
+                  method: 'get', //http method
+                  parameters: 'provider=OrganizationLocalAbbreviationValidationProvider&form=' + document.forms[0].name +
+                  			  '&field=submitterNumber&id=' + escape($F("submitterNumber")),      //request parameters
+                  //indicator: 'throbbing'
+                  onSuccess:  processValidateOrganizationLocalAbbreviationSuccess,
+                  //onFailure:  processFailure
+                 }
+              );
+    }
+
+    function processValidateOrganizationLocalAbbreviationSuccess(xhr) {
+    	var message = xhr.responseXML.getElementsByTagName("message").item(0);
+    	var success = false;
+    	var field = $('submitterNumber');
+
+    	if (message.firstChild.nodeValue.substring(0,5) == "valid"){
+    		success = true;
+    	}
+
+		selectFieldErrorDisplay(success, field);
+		setSampleFieldValidity(success, field.id);
+    	if( !success ){
+    		$('clinicName').innerHTML = '<%=clinicNA%>';
+    		alert("<bean:message key="error.organization.unknown"/>");
+    		field.focus();
+    	} else {
+    		$('clinicName').innerHTML = message.firstChild.nodeValue.substring(5);
+    	}
+    }
+
+    function sampleOrderValidateNumber(field, min) {
+    	makeDirty();
+
+    	if (field.value != null && field.value != '') {
+    	    if (field.value < min || !field.value.match(/^\d+$/)) {
+    			selectFieldErrorDisplay(false, field);
+    			setSampleFieldValidity(false, field.id);
+    			alert( "<bean:message key="quick.entry.invalid.number"/> " + min );
+    			field.focus();
+    			setCorrectSave();
+    			return;
+    	    }
+    	} else {
+    		field.value = '';
+    	}
+    	selectFieldErrorDisplay(true, field);
+    	setSampleFieldValidity(true, field.id);
+      	setCorrectSave();
+    }
+
 </script>
 
 
@@ -188,21 +314,37 @@
 
 <div id=orderDisplay <%= acceptExternalOrders && sampleOrderItem.getLabNo() == null ? "style='display:none'" : ""  %> >
 <table style="width:100%">
+<% if (useModalSampleEntry) { %>
+<tr>
+	<td align="right" style="padding-right:150px;">
+		<span style="padding-left:25px; padding-bottom:8px;">
+        <logic:equal value="false" name='<%=formName%>' property="sampleOrderItems.readOnly" >
+			<button data-toggle="modal"
+					id="printMasterLabels"
+					name="printMasterLabels"
+					type="button"
+					onclick="setupPrintLabelsModal($('labNo'), null);if($('samplesSectionId'))showSection($('samplesSectionId'), 'samplesDisplay');$jq('#label-modal').modal('show');"
+			><bean:message key="label.button.printMasterLabels" /></button>
+		</logic:equal>
+		</span>
+	</td>
+</tr>
+<% } %>
 
 <tr>
 <td>
-<table>
+<table <% if (useCompactLayout) { %>style="width:70%"<% } %>>
 <logic:empty name="<%=formName%>" property="sampleOrderItems.labNo">
     <tr>
-        <td style="width:35%">
+        <td style="<% if (!useCompactLayout) { %>width:35%<% } %>">
             <%=StringUtil.getContextualMessageForKey( "quick.entry.accession.number" )%>
             :
             <span class="requiredlabel">*</span>
         </td>
-        <td style="width:65%">
+        <td style="<% if (!useCompactLayout) { %>width:65%<% } %>">
             <app:text name="<%=formName%>" property="sampleOrderItems.labNo"
                       maxlength='<%= Integer.toString(accessionNumberValidator.getMaxAccessionLength())%>'
-                      onchange="checkAccessionNumber(this);"
+                      onchange="setOrderModified();checkAccessionNumber(this);"
                       styleClass="text"
                       styleId="labNo"/>
 
@@ -213,7 +355,7 @@
     </tr>
 </logic:empty>
 <logic:notEmpty name="<%=formName%>" property="sampleOrderItems.labNo" >
-    <tr><td style="width:35%"></td><td style="width:65%"></td></tr>
+    <tr><td style="<% if (!useCompactLayout) { %>width:35%<% } %>"></td><td style="<% if (!useCompactLayout) { %>width:65%<% } %>"></td></tr>
 </logic:notEmpty>
 <% if( FormFields.getInstance().useField( Field.SampleEntryUseRequestDate ) ){ %>
 <tr>
@@ -252,12 +394,46 @@
                    onkeyup="filterTimeKeys(this, event);"
                    property="sampleOrderItems.receivedTime"
                    styleId="receivedTime"
+                   styleClass="input-mini"
                    maxlength="5"
                    onblur="setOrderModified(); checkValidTime(this, true);"/>
 
         <% } %>
     </td>
 </tr>
+
+<% if( FormFields.getInstance().useField( Field.PROJECT_OR_NAME ) ){ %>
+<tr>
+	<td>
+		<bean:message key="humansampleone.projectNumber"/>:
+	</td>
+	<td> 
+		<app:text name="<%=formName%>" 
+				  property="sampleOrderItems.projectIdOrName" 
+  				  onblur="this.value=this.value.toUpperCase();validateProjectIdOrName(this);"
+  				  onchange="setOrderModified();"
+				  size="25"
+				  maxlength="50"
+  				  styleClass="input-small" 
+				  styleId="projectIdOrName"/>
+		<div id="projectIdOrNameDisplay" style="min-width:108px;display: inline-block;color: black;"></div>
+		<html:hidden property="sampleOrderItems.projectIdOrNameOther" name="<%=formName%>" styleId="projectIdOrNameOther" />
+		<% if( FormFields.getInstance().useField( Field.PROJECT2_OR_NAME ) ){ %>
+		<bean:message key="humansampleone.project2Number"/>:
+		<app:text name="<%=formName%>" 
+				  property="sampleOrderItems.project2IdOrName" 
+  				  onblur="this.value=this.value.toUpperCase();validateProjectIdOrName(this);"
+  				  onchange="setOrderModified();"
+				  size="25"
+				  maxlength="50"
+  				  styleClass="input-small" 
+				  styleId="project2IdOrName"/>
+		<div id="project2IdOrNameDisplay" style="display: inline;color: black;"></div>
+		<html:hidden property="sampleOrderItems.project2IdOrNameOther" name="<%=formName%>" styleId="project2IdOrNameOther" />
+		<% } %>
+	</td>
+</tr>
+<% } %>
 
 <% if( FormFields.getInstance().useField( Field.SampleEntryNextVisitDate ) ){ %>
 <tr>
@@ -377,27 +553,48 @@
 <tr>
     <td>
         <%= StringUtil.getContextualMessageForKey( "sample.entry.provider.name" ) %>:
+        <% if (useCompactLayout) { %>
+        <span style="font-size:x-small"><%= StringUtil.getContextualMessageForKey( "humansampletwo.provider.addionalOrClinician" ) %></span>:
+        <% } %>
         <% if( requesterLastNameRequired ){ %>
         <span class="requiredlabel">*</span>
         <% } %>
     </td>
     <td>
+        <% if( !useSingleNameField ) { %>
         <html:text name="<%=formName%>"
                    property="sampleOrderItems.providerLastName"
                    styleId="providerLastNameID"
                    onchange="setOrderModified();setCorrectSave();"
                    size="30"/>
         <bean:message key="humansampleone.provider.firstName.short"/>:
+        <% } %>
         <html:text name="<%=formName%>"
                    property="sampleOrderItems.providerFirstName"
                    styleId="providerFirstNameID"
                    onchange="setOrderModified();"
                    size="30"/>
+        <% if( useSubmitterNumber ) { %>
+        <bean:message key="humansampleone.provider.organization.localAbbreviation"/>:
+        <html:text name="<%=formName%>"
+               	   property="sampleOrderItems.submitterNumber"
+               	   styleId="submitterNumber"
+                   styleClass="input-small"
+                   onchange="validateOrganizationLocalAbbreviation();setOrderModified();"
+                   size="25"
+                   maxlength="25"/>
+        <bean:message key="quick.entry.clinic.name"/>:
+		<span id="clinicName" style="min-width: 108px;display: inline-block;color: black;"></span>
+        <% } %>
     </td>
 </tr>
 <tr>
     <td>
+		<% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) { %>
+        <%= StringUtil.getContextualMessageForKey( "humansampletwo.provider.workPhone" ) + ": "%>
+		<% } else { %>
         <%= StringUtil.getContextualMessageForKey( "humansampleone.provider.workPhone" ) + ": " + PhoneNumberService.getPhoneFormat()%>
+        <% } %>
     </td>
     <td>
         <app:text name="<%=formName%>"
@@ -407,6 +604,10 @@
                   maxlength="30"
                   styleClass="text"
                   onchange="setOrderModified();validatePhoneNumber(this)"/>
+		<% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) { %>
+        <bean:message key="humansampletwo.provider.workPhone.extension"/>:
+        <input id="providerWorkPhoneExt" type="text" class="input-mini" maxlength="4" onchange="setOrderModified();sampleOrderValidateNumber(this, 0)">
+		<% } %>
     </td>
 </tr>
 <% } %>
@@ -421,7 +622,7 @@
                   styleId="providerFaxID"
                   size="20"
                   styleClass="text"
-                  onchange="setOrderModified();makeDirty()"/>
+                  onchange="setOrderModified();"/>
     </td>
 </tr>
 <% } %>
@@ -436,7 +637,7 @@
                   styleId="providerEmailID"
                   size="20"
                   styleClass="text"
-                  onchange="setOrderModified();makeDirty()"/>
+                  onchange="setOrderModified();"/>
     </td>
 </tr>
 <% } %>
@@ -450,7 +651,7 @@
         <html:text name='<%=formName %>'
                    property="sampleOrderItems.facilityAddressStreet"
                    styleClass="text"
-                   onchange="setOrderModified();makeDirty()"/>
+                   onchange="setOrderModified();"/>
     </td>
 </tr>
 <tr>
@@ -459,7 +660,7 @@
         <html:text name='<%=formName %>'
                    property="sampleOrderItems.facilityAddressCommune"
                    styleClass="text"
-                   onchange="setOrderModified();makeDirty()"/>
+                   onchange="setOrderModified();"/>
     </td>
 </tr>
 <tr>
@@ -478,7 +679,7 @@
         <html:text name='<%=formName %>'
                    property="sampleOrderItems.facilityFax"
                    styleClass="text"
-                   onchange="setOrderModified();makeDirty()"/>
+                   onchange="setOrderModified();"/>
     </td>
 </tr>
 <% } %>
@@ -487,9 +688,10 @@
 </tr>
 <% if( trackPayment ){ %>
 <tr>
-    <td><bean:message key="sample.entry.patientPayment"/>:</td>
+    <td><%=StringUtil.getContextualMessageForKey("sample.entry.patientPayment")%>:</td>
     <td>
-        <html:select name="<%=formName %>" property="sampleOrderItems.paymentOptionSelection" onchange="setOrderModified();" >
+        <logic:equal value="false" name="<%=formName%>" property="sampleOrderItems.readOnly" >
+        <html:select name="<%=formName %>" property="sampleOrderItems.paymentOptionSelection" onchange="setOrderModified();" styleId="paymentOptionSelection">
             <option value=''></option>
             <logic:iterate id="optionValue" name='<%=formName%>' property="sampleOrderItems.paymentOptions"
                            type="IdValuePair">
@@ -498,6 +700,10 @@
                 </option>
             </logic:iterate>
         </html:select>
+        </logic:equal>
+       	<logic:equal value="true" name="<%=formName%>" property="sampleOrderItems.readOnly" >
+       	<html:text name="<%=formName%>" property="sampleOrderItems.paymentOptionSelection" styleId="paymentOptionSelection" />
+       	</logic:equal>
     </td>
 </tr>
 <% } %>
@@ -553,6 +759,15 @@
 </div>
 
 <script type="text/javascript">
+	<% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) { %>
+	if ($("providerWorkPhoneID").value.indexOf(" ") != -1) {
+		var phone = $("providerWorkPhoneID").value.substring(0, $("providerWorkPhoneID").value.indexOf(" "));
+		var ext = $("providerWorkPhoneID").value.substring($("providerWorkPhoneID").value.indexOf(" ") + 1);
+		$("providerWorkPhoneID").value = phone;
+		$("providerWorkPhoneExt").value = ext;
+	}
+	<% } %>
+
 
     <% if( FormFields.getInstance().useField( Field.TEST_LOCATION_CODE ) ){%>
     function showTestLocationCode(){
@@ -581,6 +796,28 @@
         <% if( FormFields.getInstance().useField( Field.TEST_LOCATION_CODE ) ){%>
             showTestLocationCode();
         <% } %>
+
+        if (useProjectName) {
+    		new AjaxJspTag.Autocomplete(
+    			"ajaxAutocompleteXML", {
+    				source: "projectIdOrName",
+    				target: "projectIdOrNameOther",
+    				minimumCharacters: "1",
+    				className: "autocomplete",
+    				parameters: "projectName={projectIdOrName},provider=ProjectAutocompleteProvider,fieldName=projectName,idName=id"
+    			});
+        }
+        
+        if (useProject2Name) {
+    		new AjaxJspTag.Autocomplete(
+    			"ajaxAutocompleteXML", {
+    				source: "project2IdOrName",
+    				target: "project2IdOrNameOther",
+    				minimumCharacters: "1",
+    				className: "autocomplete",
+    				parameters: "projectName={project2IdOrName},provider=ProjectAutocompleteProvider,fieldName=projectName,idName=id"
+    			});
+    	}
     });
 
 </script>

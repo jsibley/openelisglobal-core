@@ -18,6 +18,7 @@
 	IAccessionNumberValidator accessionValidator;
 	String basePath = "";
 	String formName;
+	java.util.Locale locale = null;
  %>
 
 <%
@@ -25,6 +26,7 @@
 	String path = request.getContextPath();
 	basePath = request.getScheme() + "://" + request.getServerName() + ":"	+ request.getServerPort() + path + "/";
 	formName = (String)request.getAttribute(IActionConstants.FORM_NAME);
+	locale = (java.util.Locale)request.getSession().getAttribute(org.apache.struts.Globals.LOCALE_KEY);
 %>
 
 <link rel="stylesheet" media="screen" type="text/css" href="<%=basePath%>css/bootstrap.css?ver=<%= Versioning.getBuildNumber() %>" />
@@ -85,6 +87,7 @@ function submit(){
 	    <div class="current" >
             <h2><bean:message key="order.information" /></h2>
             <tiles:insert attribute="orderInfo" />
+    		<tiles:useAttribute name="displayOrderItemsInPatientManagement" scope="request" />
             <tiles:insert attribute="patientInfo" />
         </div>
 		<div class="row-fluid">
@@ -120,11 +123,11 @@ function submit(){
 				</table>
 				
 				<div id="showOptions" class="show-table-options">
-					<button class="reset-sort btn btn-mini" disabled="disabled"><i class="icon-refresh"></i> Reset</button>
-					<label> Montrer :
+					<button class="reset-sort btn btn-mini" disabled="disabled"><i class="icon-refresh"></i> <%=StringUtil.getMessageForKey("label.button.reset") %></button>
+					<label> <%=StringUtil.getMessageForKey("label.pagination.show") %> :
 				        <select id="filterByType">
 				        <!--  Options for filter are added via filterByType jquery function -->
-				            <option value="">Tous</option>
+				            <option value=""><%=StringUtil.getMessageForKey("label.button.checkAll") %></option>
 				        </select>
 				    </label>
 				</div>
@@ -137,13 +140,13 @@ function submit(){
 	</logic:notEmpty>
 	
 <logic:notEmpty name='<%= formName %>' property="log" >
-<script type="text/javascript" src="<%=basePath%>scripts/oe.datatables.functions.js?ver=<%= Versioning.getBuildNumber() %>"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/oe.datatables.functions.js?ver=<%= Versioning.getBuildNumber() %>" params="locale='<%=locale%>'"></script>
 </logic:notEmpty>
 
 <script type="text/javascript">
 
     jQuery(document).ready( function() {
-        jQuery(".current input").each( function(index,elem){ jQuery(elem).attr('readonly', true) });
-        jQuery(".current .spacerRow").each( function(index, elem){jQuery(elem).hide()});
+		jQuery(".current input").each( function(index,elem){ jQuery(elem).attr('readonly', true) });
+		jQuery(".current .spacerRow").each( function(index, elem){jQuery(elem).hide()});
     } );
 </script>

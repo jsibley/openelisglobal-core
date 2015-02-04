@@ -50,8 +50,12 @@ import us.mn.state.health.lims.person.valueholder.Person;
 import us.mn.state.health.lims.provider.valueholder.Provider;
 import us.mn.state.health.lims.requester.valueholder.SampleRequester;
 import us.mn.state.health.lims.sample.bean.SampleOrderItem;
+import us.mn.state.health.lims.sample.dao.SampleDAO;
+import us.mn.state.health.lims.sample.daoimpl.SampleDAOImpl;
 import us.mn.state.health.lims.sample.util.AccessionNumberUtil;
 import us.mn.state.health.lims.sample.valueholder.Sample;
+import us.mn.state.health.lims.samplehuman.dao.SampleHumanDAO;
+import us.mn.state.health.lims.samplehuman.daoimpl.SampleHumanDAOImpl;
 import us.mn.state.health.lims.samplehuman.valueholder.SampleHuman;
 
 import java.util.ArrayList;
@@ -65,7 +69,11 @@ public class SamplePatientUpdateData{
     private Provider provider;
     private String patientId;
     private String accessionNumber;
+    private String projectId = null;
+    private String project2Id = null;
 
+	private boolean newSample = true;
+    private boolean sampleRejection = false;
     private Sample sample;
     private SampleHuman sampleHuman = new SampleHuman();
     private SampleRequester requesterSite;
@@ -79,6 +87,7 @@ public class SamplePatientUpdateData{
     private boolean useReceiveDateForCollectionDate = !FormFields.getInstance().useField( Field.CollectionDate);
     private String collectionDateFromReceiveDate = null;
     private OrganizationDAO orgDAO = new OrganizationDAOImpl();
+	private SampleDAO sampleDAO = new SampleDAOImpl();
 
     private ElectronicOrderDAO electronicOrderDAO = new ElectronicOrderDAOImpl();
     private List<ObservationHistory> observations  = new ArrayList<ObservationHistory>();
@@ -121,12 +130,66 @@ public class SamplePatientUpdateData{
         this.patientId = patientId;
     }
 
+    public boolean isNewSample(){
+        return newSample;
+    }
+
+    public boolean getNewSample(){
+        return newSample;
+    }
+
+    public void setNewSample( boolean newSample ){
+        this.newSample = newSample;
+    }
+
+    public boolean getSampleRejection(){
+        return sampleRejection;
+    }
+
+    public void setSampleRejection( boolean sampleRejection ){
+        this.sampleRejection = sampleRejection;
+    }
+
     public String getAccessionNumber(){
         return accessionNumber;
     }
 
     public void setAccessionNumber( String accessionNumber ){
         this.accessionNumber = accessionNumber;
+    }
+
+    public String getProjectId(){
+        return projectId;
+    }
+
+    public void setProjectId( String projectId ){
+        this.projectId = projectId;
+    }
+
+    public String getProject2Id(){
+        return project2Id;
+    }
+
+    public void setProject2Id( String project2Id ){
+        this.project2Id = project2Id;
+    }
+
+    public void setProjectIds(SampleOrderItem sampleOrder) {
+    	if (FormFields.getInstance().useField(Field.PROJECT_OR_NAME)) { 
+    		if (!GenericValidator.isBlankOrNull(sampleOrder.getProjectIdOrName()) && org.apache.commons.lang.StringUtils.isNumeric(sampleOrder.getProjectIdOrName())) {
+    			setProjectId(sampleOrder.getProjectIdOrName());
+    		} else if (!GenericValidator.isBlankOrNull(sampleOrder.getProjectIdOrNameOther()) && org.apache.commons.lang.StringUtils.isNumeric(sampleOrder.getProjectIdOrNameOther())) {
+    			setProjectId(sampleOrder.getProjectIdOrNameOther());
+	    	}
+    	}
+
+    	if (FormFields.getInstance().useField(Field.PROJECT2_OR_NAME)) {
+    		if (!GenericValidator.isBlankOrNull(sampleOrder.getProject2IdOrName()) && org.apache.commons.lang.StringUtils.isNumeric(sampleOrder.getProject2IdOrName())) {
+    			setProject2Id(sampleOrder.getProject2IdOrName());
+    		} else if (!GenericValidator.isBlankOrNull(sampleOrder.getProject2IdOrNameOther()) && org.apache.commons.lang.StringUtils.isNumeric(sampleOrder.getProject2IdOrNameOther())) {
+    			setProject2Id(sampleOrder.getProject2IdOrNameOther());
+	    	}
+    	}
     }
 
     public Sample getSample(){
@@ -269,6 +332,15 @@ public class SamplePatientUpdateData{
 
     public void createPopulatedSample( String receivedDate, SampleOrderItem sampleOrder) {
         sample = new Sample();
+
+		// Check for existing sample
+		Sample existingSample = sampleDAO.getSampleByAccessionNumber(accessionNumber);
+		if (existingSample != null && !GenericValidator.isBlankOrNull(existingSample.getId())) {
+			sample.setId(existingSample.getId());
+			sampleDAO.getData(sample);
+			setNewSample(false);
+		}
+		
         sample.setSysUserId(currentUserId);
         sample.setAccessionNumber(accessionNumber);
 
@@ -334,8 +406,12 @@ public class SamplePatientUpdateData{
     }
 
     public void buildSampleHuman(){
+		sampleHuman.setSampleId(sample.getId());
+		if (!isNewSample()) {
+			SampleHumanDAO sampleHumanDAO = new SampleHumanDAOImpl();
+			sampleHumanDAO.getDataBySample(sampleHuman);
+		}
         sampleHuman.setSysUserId(currentUserId);
-        sampleHuman.setSampleId(sample.getId());
         sampleHuman.setPatientId(patientId);
         if (provider != null) {
             sampleHuman.setProviderId(provider.getId());
@@ -369,6 +445,11 @@ public class SamplePatientUpdateData{
     public void initializeRequester( SampleOrderItem sampleOrder ){
         if ( FormFields.getInstance().useField( Field.RequesterSiteList )) {
             setRequesterSite( initSampleRequester( sampleOrder ) );
+        } else if (FormFields.getInstance().useField( Field.SUBMITTER_NUMBER ) && !GenericValidator.isBlankOrNull(sampleOrder.getSubmitterNumber())) {
+			OrganizationDAO orgDAO = new OrganizationDAOImpl();
+			Organization organization = new Organization();
+			organization.setOrganizationLocalAbbreviation(sampleOrder.getSubmitterNumber());
+			setRequesterSite(createSiteRequester(orgDAO.getOrganizationByLocalAbbreviation(organization, true).getId()));
         }
     }
 
@@ -440,6 +521,20 @@ public class SamplePatientUpdateData{
         if( ConfigurationProperties.getInstance().isPropertyValueEqual( Property.ORDER_PROGRAM, "true" )){
             createObservation( sampleOrder.getProgram(), ObservationHistoryService.getObservationTypeIdForType( ObservationType.PROGRAM ), ValueType.DICTIONARY );
         }
+		if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_ORDER_URGENCY))
+			createObservation(sampleOrder.getOrderUrgency(), ObservationHistoryService.getObservationTypeIdForType(ObservationType.ORDER_URGENCY), ValueType.LITERAL);
+		if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_PATIENT_DIAGNOSIS))
+			createObservation(sampleOrder.getPatientDiagnosis(), ObservationHistoryService.getObservationTypeIdForType(ObservationType.PATIENT_DIAGNOSIS), ValueType.LITERAL);
+		if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_PATIENT_BED_NUMBER))
+			createObservation(sampleOrder.getPatientBedNumber(), ObservationHistoryService.getObservationTypeIdForType(ObservationType.PATIENT_BED_NUMBER), ValueType.LITERAL);
+		if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_PATIENT_ROOM_NUMBER))
+			createObservation(sampleOrder.getPatientRoomNumber(), ObservationHistoryService.getObservationTypeIdForType(ObservationType.PATIENT_ROOM_NUMBER), ValueType.LITERAL);
+		if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_PATIENT_CLINICAL_DEPT))
+			createObservation(sampleOrder.getPatientClinicalDeptId(), ObservationHistoryService.getObservationTypeIdForType(ObservationType.PATIENT_CLINICAL_DEPT_ID), ValueType.DICTIONARY);
+		if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_PATIENT_AGE_VALUE_AND_UNITS) && !GenericValidator.isBlankOrNull(sampleOrder.getPatientAgeValue())) {
+			createObservation(sampleOrder.getPatientAgeValue(), ObservationHistoryService.getObservationTypeIdForType(ObservationType.PATIENT_AGE_VALUE), ValueType.LITERAL);
+			createObservation(sampleOrder.getPatientAgeUnits(), ObservationHistoryService.getObservationTypeIdForType(ObservationType.PATIENT_AGE_UNITS), ValueType.LITERAL);
+		}
     }
 
 

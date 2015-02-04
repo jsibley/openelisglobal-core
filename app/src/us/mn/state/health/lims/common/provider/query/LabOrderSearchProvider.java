@@ -28,6 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.validator.GenericValidator;
 
+import us.mn.state.health.lims.common.formfields.FormFields;
+import us.mn.state.health.lims.common.formfields.FormFields.Field;
 import us.mn.state.health.lims.common.services.PatientService;
 import us.mn.state.health.lims.common.services.StatusService;
 import us.mn.state.health.lims.common.services.StatusService.ExternalOrderStatus;
@@ -372,22 +374,25 @@ public class LabOrderSearchProvider extends BaseQueryProvider{
 		xml.append("<crosspanel>");
 		XMLUtil.appendKeyValue("name", panel.getLocalizedName(), xml);
 		XMLUtil.appendKeyValue("id", panel.getId(), xml);
-		addPanelCrosssampletypes(xml, typeOfSampleList);
+		addPanelCrosssampletypes(panel.getId(), xml, typeOfSampleList);
 		xml.append("</crosspanel>");
 	}
 
-	private void addPanelCrosssampletypes(StringBuilder xml, List<TypeOfSample> typeOfSampleList){
+	private void addPanelCrosssampletypes(String panelId, StringBuilder xml, List<TypeOfSample> typeOfSampleList){
 		xml.append("<crosssampletypes>");
 		for(TypeOfSample typeOfSample : typeOfSampleList){
-			addCrosspanelTypeOfSample(xml, typeOfSample);
+			addCrosspanelTypeOfSample(panelId, xml, typeOfSample);
 		}
 		xml.append("</crosssampletypes>");
 	}
 
-	private void addCrosspanelTypeOfSample(StringBuilder xml, TypeOfSample typeOfSample){
+	private void addCrosspanelTypeOfSample(String panelId, StringBuilder xml, TypeOfSample typeOfSample){
 		xml.append("<crosssampletype>");
 		XMLUtil.appendKeyValue("id", typeOfSample.getId(), xml);
 		XMLUtil.appendKeyValue("name", typeOfSample.getLocalizedName(), xml);
+        if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_MODAL_VERSION)) {
+			addPanelTests(xml, panelId, typeOfSample.getId());
+        }
 		xml.append("</crosssampletype>");
 	}
 

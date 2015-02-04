@@ -412,10 +412,16 @@ public class ResultsLoadUtility {
 			StringBuilder conditions = new StringBuilder();
 
 			for (ObservationHistory observation : observationList) {
-				Dictionary dictionary = dictionaryDAO.getDictionaryById(observation.getValue());
-				if (dictionary != null) {
-					conditions.append(dictionary.getLocalizedName());
-					conditions.append(", ");
+				if ("L".equals(observation.getValueType())) {
+					 conditions.append(observation.getValue());
+					 conditions.append("; ");
+				} else {
+					Dictionary dictionary = dictionaryDAO.getDictionaryById(observation.getValue());
+
+					if (dictionary != null) {
+						conditions.append(dictionary.getLocalizedName());
+						conditions.append("; ");
+					}
 				}
 			}
 

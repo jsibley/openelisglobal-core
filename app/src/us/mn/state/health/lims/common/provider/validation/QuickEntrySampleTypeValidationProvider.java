@@ -16,8 +16,9 @@
 package us.mn.state.health.lims.common.provider.validation;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+import java.net.URLDecoder;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import us.mn.state.health.lims.common.exception.LIMSRuntimeException;
 import us.mn.state.health.lims.common.servlet.validation.AjaxServlet;
 import us.mn.state.health.lims.common.util.StringUtil;
-import us.mn.state.health.lims.common.util.SystemConfiguration;
 import us.mn.state.health.lims.typeofsample.dao.TypeOfSampleDAO;
 import us.mn.state.health.lims.typeofsample.daoimpl.TypeOfSampleDAOImpl;
 import us.mn.state.health.lims.typeofsample.valueholder.TypeOfSample;
@@ -57,8 +57,15 @@ public class QuickEntrySampleTypeValidationProvider
 							   HttpServletResponse response) 
 		throws ServletException, IOException
 	{
-		String targetId = (String) request.getParameter("id");
-		String formField = (String) request.getParameter("field");
+		// need to use 'URLDecoder.decode' since calling 'request.getParameter' directly does not handle the encoding properly
+		String decodedRequest = URLDecoder.decode(request.getQueryString(), "UTF-8");
+		Map<String, String> paramMap = new LinkedHashMap<String, String>();
+		for (String paramPair : decodedRequest.split("&")) {
+		   String[] pairs = paramPair.split("=", 2);
+		   paramMap.put(pairs[0], pairs[1]);
+		}
+		String targetId = (String) paramMap.get("id");
+		String formField = (String) paramMap.get("field");
 		String result = validate(targetId);
 		ajaxServlet.sendData(formField, result, request, response);
 	}

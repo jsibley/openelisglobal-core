@@ -145,7 +145,18 @@ public class SampleEditAction extends BaseAction {
         patientSearch.setSelectedPatientActionButtonText( StringUtil.getMessageForKey( "label.patient.search.select" ) );
         PropertyUtils.setProperty( form, "patientSearch", patientSearch );
 		
-		return mapping.findForward(forward);
+        // The following are for compatibility with modal version of sample entry
+        if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_MODAL_VERSION)) {
+        	PropertyUtils.setProperty(dynaForm, "sampleSources", DisplayListService.getList(ListType.SAMPLE_SOURCE));
+        	PropertyUtils.setProperty(dynaForm, "initConditionFormErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_INIT_COND_FORM_ERRORS));
+        	PropertyUtils.setProperty(dynaForm, "initConditionLabelErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_INIT_COND_LABEL_ERRORS));
+        	PropertyUtils.setProperty(dynaForm, "initConditionMiscList", DisplayListService.getList(ListType.SAMPLE_ENTRY_INIT_COND_MISC));
+        	PropertyUtils.setProperty(dynaForm, "rejectionReasonFormErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_REJECTION_FORM_ERRORS));
+        	PropertyUtils.setProperty(dynaForm, "rejectionReasonLabelErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_REJECTION_LABEL_ERRORS));
+        	PropertyUtils.setProperty(dynaForm, "rejectionReasonMiscList", DisplayListService.getList(ListType.SAMPLE_ENTRY_REJECTION_MISC));
+        }
+
+        return mapping.findForward(forward);
 	}
 
     private Boolean hasResults( List<SampleEditItem> currentTestList, boolean allowedToCancelResults ){

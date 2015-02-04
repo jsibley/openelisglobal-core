@@ -1050,7 +1050,7 @@ e = e
 characterCode = e.which //character code is contained in NN4's which property
 }
 else{
-e = event
+e = e
 characterCode = e.keyCode //character code is contained in IE's keyCode property
 }
 

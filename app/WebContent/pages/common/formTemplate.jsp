@@ -41,6 +41,7 @@ if (form == null) {
 <script type="text/javascript" src="<%=basePath%>scripts/jquery-1.8.0.min.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <script type="text/javascript" src="<%=basePath%>scripts/jquery.dataTables.min.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <script type="text/javascript" src="<%=basePath%>scripts/bootstrap.min.js?ver=<%= Versioning.getBuildNumber() %>"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jquery-barcode.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <script type="text/javascript">
 var  $jq = jQuery.noConflict();
 </script>

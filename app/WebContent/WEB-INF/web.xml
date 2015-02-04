@@ -140,6 +140,13 @@
     <load-on-startup>15</load-on-startup>
   </servlet>
 
+   <servlet>
+    <servlet-name>ajaxReportsXML</servlet-name>
+    <display-name>ajaxReportsXML</display-name> 
+    <servlet-class>us.mn.state.health.lims.common.servlet.reports.AjaxXMLServlet</servlet-class>
+    <load-on-startup>16</load-on-startup>
+  </servlet>
+ 
  <servlet>
     <servlet-name>logoUpload</servlet-name>
     <display-name>logoUpload</display-name> 
@@ -215,6 +222,11 @@
    <servlet-mapping>
     <servlet-name>OrderRequestRawServlet</servlet-name>
     <url-pattern>/OrderRequest_Raw</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>ajaxReportsXML</servlet-name>
+    <url-pattern>/ajaxReportsXML</url-pattern>
   </servlet-mapping>
   
    <servlet-mapping>

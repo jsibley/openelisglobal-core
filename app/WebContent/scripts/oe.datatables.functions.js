@@ -6,8 +6,64 @@
 // http://docs.jquery.com/Using_jQuery_with_Other_Libraries
 jQuery.noConflict();
 
+function localizeByKey (key, locale) {
+    if (key == 'label.audittrail.filter') {
+    	if (locale.toLowerCase().indexOf('fr') != -1) {
+    		return "Filtrer les entrées: ";
+    	} else if (locale.toLowerCase().indexOf('vn') != -1) {
+    		return "Filter by: ";
+    	} else {
+    		return "Filter by: ";
+    	}
+    }
+    if (key == 'label.audittrail.filter.limit') {
+    	if (locale.toLowerCase().indexOf('fr') != -1) {
+    		return "(filtrée à partir de _MAX_)";
+    	} else if (locale.toLowerCase().indexOf('vn') != -1) {
+    		return "(filtered up to _MAX_)";
+    	} else {
+    		return "(filtered up to _MAX_)";
+    	}
+    }
+    if (key == 'label.audittrail.none') {
+    	if (locale.toLowerCase().indexOf('fr') != -1) {
+    		return "Aucun";
+    	} else if (locale.toLowerCase().indexOf('vn') != -1) {
+    		return "None";
+    	} else {
+    		return "None";
+    	}
+    }
+    if (key == 'label.audittrail.none.found') {
+    	if (locale.toLowerCase().indexOf('fr') != -1) {
+    		return "Aucun enregistrement correspondant n'a été trouvé";
+    	} else if (locale.toLowerCase().indexOf('vn') != -1) {
+    		return "No corresponding matches found";
+    	} else {
+    		return "No corresponding matches found";
+    	}
+    }
+    if (key == 'label.audittrail.total') {
+    	if (locale.toLowerCase().indexOf('fr') != -1) {
+    		return "_TOTAL_ entrées appariement";
+    	} else if (locale.toLowerCase().indexOf('vn') != -1) {
+    		return "_TOTAL_ matches shown";
+    	} else {
+    		return "_TOTAL_ matches shown";
+    	}
+    }
+}
+
 // jQuery dataTable functions begin
 jQuery(document).ready(function ($) {
+	// Read parameters from any <script> tags that have them
+	var scriptParams = [];
+	$("script[params]").each(function() {
+		var params = $(this).attr("params").split(',');
+		for (var i = 0; i < params.length; i++) {
+			scriptParams[params[i].split('=')[0]] = params[i].split('=')[1];
+		}
+	});
 	// Extends Datatables to allow filtering via filterByType dropdown.
     var classFilter = "";
     $.fn.dataTableExt.afnFiltering.push(
@@ -68,11 +124,11 @@ jQuery(document).ready(function ($) {
         "bPaginate": false, // Turns off pagination
         // Localization settings. Currently hard-coded to French
         "oLanguage": {
-            "sSearch": "Filtrer les entrées:",
-            "sInfoFiltered": "(filtrée à partir de _MAX_)",
-            "sInfoEmpty": "Aucun ",
-            "sInfo": "_TOTAL_ entrées appariement",
-            "sZeroRecords": "Aucun enregistrement correspondant n'a été trouvé"
+            "sSearch": localizeByKey('label.audittrail.filter', scriptParams['locale']),
+            "sInfoFiltered": localizeByKey('label.audittrail.filter.limit', scriptParams['locale']),
+            "sInfoEmpty": localizeByKey('label.audittrail.none', scriptParams['locale']),
+            "sInfo": localizeByKey('label.audittrail.total', scriptParams['locale']),
+            "sZeroRecords": localizeByKey('label.audittrail.none.found', scriptParams['locale'])
         },
         // Hides 1st column used for sorting
         "aoColumnDefs": [

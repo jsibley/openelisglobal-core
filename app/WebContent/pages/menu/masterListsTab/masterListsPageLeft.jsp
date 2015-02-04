@@ -176,6 +176,13 @@
   </html:link>
 </li>
 <% } %>
+<% if(adminFields.useField(Field.SampleLabelMenu)){ %>
+<li>
+  <html:link action="/SampleLabelConfigurationMenu">
+    <bean:message key="sample.label.browse.title" />
+  </html:link>
+</li>
+<% } %>
 <% if(adminFields.useField(Field.SampleEntryMenu)){ %>
 <li>
   <html:link action="/SampleEntryConfigMenu">
@@ -307,6 +314,13 @@
 <li>
   <html:link action="/TypeOfSamplePanelMenu">
     <bean:message key="typeofsample.panel" />
+  </html:link>
+</li>
+<% } %>
+<% if(adminFields.useField(Field.TypeOfSampleSourceMenu)){ %>
+<li>
+  <html:link action="/TypeOfSampleSourceMenu">
+    <bean:message key="typeofsample.source" />
   </html:link>
 </li>
 <% } %>

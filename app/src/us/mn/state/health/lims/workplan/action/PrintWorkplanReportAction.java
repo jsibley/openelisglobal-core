@@ -109,7 +109,7 @@ public class PrintWorkplanReportAction extends BaseAction {
 	
 	    }
 	    catch (JRException jre) {
-	    	LogEvent.logError("PringWorkplanReportAction","processRequest()", jre.toString());
+	    	LogEvent.logError("PrintWorkplanReportAction","processRequest()", jre.toString());
 	    	error = new ActionError("error.jasper", null, null);
 	    } catch (Exception e) {
 	    	LogEvent.logError("PrintWorkplanReportAction","processRequest()", e.toString());

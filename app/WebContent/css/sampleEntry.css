@@ -1,0 +1,202 @@
+html {overflow-y: scroll;} /* browser scrollbar always appears. So page doesn't move slightly when it appears/disappears when form is expanded. */
+/* #header */
+/* { */
+/* 	background: linear-gradient(top, #486086 0%,#557aaf 100%); */
+/* 	background: -moz-linear-gradient(top, #486086 0%, #557aaf 100%); */
+/* 	background: -ms-linear-gradient(top, #486086 0%,#557aaf 100%); */
+/* 	background: -o-linear-gradient(top, #486086 0%,#557aaf 100%); */
+/* 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#486086), color-stop(100%,#557aaf)); */
+/* 	background: -webkit-linear-gradient(top, #486086 0%,#557aaf 100%); */
+/* 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#486086', endColorstr='#557aaf',GradientType=0 ); */
+/* 	font-size: 13px; */
+/* 	height: 93px; */
+/* 	line-height: 1em; */
+/* 	margin-bottom: 10px; */
+/* 	margin-top: -98px; */
+/* 	background-color: #486086; */
+/* 	min-width: 970px; */
+/* 	z-index: 10; */
+/* 	position: relative */
+/* } */
+#backline
+{
+	background: linear-gradient(top, #486086 0%,#557aaf 100%);
+	background: -moz-linear-gradient(top, #486086 0%, #557aaf 100%);
+	background: -ms-linear-gradient(top, #486086 0%,#557aaf 100%);
+	background: -o-linear-gradient(top, #486086 0%,#557aaf 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#486086), color-stop(100%,#557aaf));
+	background: -webkit-linear-gradient(top, #486086 0%,#557aaf 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#486086', endColorstr='#557aaf',GradientType=0 );
+	height: 90px;
+	background-color: #486086;
+	width: 100%;
+	position: relative;
+	top: 0;
+	z-index: 1
+}
+.sample-form
+{
+	width: 100%;
+}
+.sample-form td
+{
+	padding: 4px 2px;
+	text-align: right;
+	vertical-align: middle;
+}
+.sample-form td.left
+{
+	border-left: none;
+	text-align: left;
+}
+.checkbox-container-small
+{
+	border: 2px solid #ccc;
+	max-height: 180px;
+	overflow-y: scroll;
+	padding: 4px;
+}
+.checkbox-container
+{
+	border: 2px solid #ccc;
+	max-height: 300px;
+	overflow-y: scroll;
+	padding: 4px;
+}
+.test-container
+{
+	border: 2px solid #ccc;
+	overflow-y: scroll;
+	padding: 4px;
+	max-width: 280px;
+	margin-right: 8px;
+	min-height: 50px;
+	max-height: 50px;
+}
+.test-remove
+{
+	cursor: pointer;
+}
+.display-tests-main {
+	max-width: 100%;
+	margin: 0 0 6px;
+}
+.sample-row {
+	display: none;
+}
+.summary-section {
+	margin-top: 6px;
+	background-color: #eee;
+	padding: 4px 0px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;	
+}
+.summary-section:hover {
+	background-color: #D9EDF7;
+}
+form .required label.control-label {
+	/* font-weight: bold; */
+	width: 148px /* moves over so label stays inline */
+}
+form .required label.control-label:after { 
+    color: #e32; 
+    content: ' *'; 
+    display:inline;
+} 
+
+.form-horizontal .control-group {
+	margin-bottom: 12px;
+}
+.summary-section div {
+	line-height: 28px
+}
+.summary-section .alert {
+	margin: 0
+}
+/* top and margin-top to change height of modal. FIXME - needs work
+	to have it properly expand and avoid too many scroll bars.
+	https://github.com/twitter/bootstrap/issues/407
+	http://stackoverflow.com/questions/9416985/increase-modal-size-for-twitter-bootstrap
+	*/
+.sample-modal {
+	max-width: 980px;
+	min-width: 500px;
+	top: 5%;
+	/*margin-bottom: 20px;
+	margin-top: 0;
+	margin-top: -450px*/
+}
+.sample-modal .modal-body {
+	max-height: none;
+	overflow-y: auto
+}
+.hover-show-tests {
+	background-color: #F2DEDE
+}
+.display-tests li {
+	margin: 3px 0 3px -3px;
+	padding-left: 3px;
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px;	
+}
+.patient-fields {
+	display: none
+}
+.page-note {
+	position: fixed;
+	top: 180px;
+	right: 0;
+	z-index: 200;
+	/*-webkit-transform: rotate(-90deg); 
+	-moz-transform: rotate(-90deg);	*/
+	border: 1px solid #BEBEBE;
+	border-right: none;
+	background-color: #F4F4F4;
+	padding: 12px 6px;
+	-webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+.required-header::after {
+	color: #E32;
+	content: ' *';
+	display: inline
+}
+.select-wide {
+	width: auto
+}
+.table tbody tr.rejected-sample td, .table tbody tr.rejected-sample td:hover, ul.rejected-sample {
+	background-color: #DA4F49
+} 
+.edit-reject:hover {
+	cursor: pointer
+}
+/* Playing with the aligment of inputs - problem with IE9*/
+#tests-container label {
+	clear: both
+}
+#sample-row0, #sample-modal0 {
+	display: none
+}
+
+#main-form {
+	max-width: 1300px;
+	padding: 0 100px;
+}
+.mslist-list {
+	margin: 0;
+}
+.mslist-list li {
+	list-style: none;
+}
+.multi-select {
+	width: 220px;
+}
+table#samplesAddedTable td,th,select{
+	max-width:150px;
+}
+li.nobullet {
+	list-style: none;
+}

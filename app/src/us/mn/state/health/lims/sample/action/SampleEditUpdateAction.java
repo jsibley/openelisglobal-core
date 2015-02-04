@@ -21,6 +21,7 @@ import org.apache.struts.Globals;
 import org.apache.struts.action.*;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.Transaction;
+
 import us.mn.state.health.lims.analysis.dao.AnalysisDAO;
 import us.mn.state.health.lims.analysis.daoimpl.AnalysisDAOImpl;
 import us.mn.state.health.lims.analysis.valueholder.Analysis;
@@ -38,6 +39,8 @@ import us.mn.state.health.lims.common.util.DateUtil;
 import us.mn.state.health.lims.common.util.StringUtil;
 import us.mn.state.health.lims.common.util.validator.ActionError;
 import us.mn.state.health.lims.hibernate.HibernateUtil;
+import us.mn.state.health.lims.note.dao.NoteDAO;
+import us.mn.state.health.lims.note.daoimpl.NoteDAOImpl;
 import us.mn.state.health.lims.observationhistory.dao.ObservationHistoryDAO;
 import us.mn.state.health.lims.observationhistory.daoimpl.ObservationHistoryDAOImpl;
 import us.mn.state.health.lims.observationhistory.valueholder.ObservationHistory;
@@ -50,6 +53,12 @@ import us.mn.state.health.lims.patient.valueholder.Patient;
 import us.mn.state.health.lims.person.dao.PersonDAO;
 import us.mn.state.health.lims.person.daoimpl.PersonDAOImpl;
 import us.mn.state.health.lims.person.valueholder.Person;
+import us.mn.state.health.lims.qaevent.dao.QaEventDAO;
+import us.mn.state.health.lims.qaevent.dao.QaObservationDAO;
+import us.mn.state.health.lims.qaevent.daoimpl.QaEventDAOImpl;
+import us.mn.state.health.lims.qaevent.daoimpl.QaObservationDAOImpl;
+import us.mn.state.health.lims.qaevent.valueholder.QaEvent;
+import us.mn.state.health.lims.qaevent.valueholder.QaObservation;
 import us.mn.state.health.lims.requester.dao.SampleRequesterDAO;
 import us.mn.state.health.lims.requester.daoimpl.SampleRequesterDAOImpl;
 import us.mn.state.health.lims.requester.valueholder.SampleRequester;
@@ -62,6 +71,12 @@ import us.mn.state.health.lims.sample.valueholder.Sample;
 import us.mn.state.health.lims.sampleitem.dao.SampleItemDAO;
 import us.mn.state.health.lims.sampleitem.daoimpl.SampleItemDAOImpl;
 import us.mn.state.health.lims.sampleitem.valueholder.SampleItem;
+import us.mn.state.health.lims.sampleproject.dao.SampleProjectDAO;
+import us.mn.state.health.lims.sampleproject.daoimpl.SampleProjectDAOImpl;
+import us.mn.state.health.lims.sampleproject.valueholder.SampleProject;
+import us.mn.state.health.lims.sampleqaevent.dao.SampleQaEventDAO;
+import us.mn.state.health.lims.sampleqaevent.daoimpl.SampleQaEventDAOImpl;
+import us.mn.state.health.lims.sampleqaevent.valueholder.SampleQaEvent;
 import us.mn.state.health.lims.test.dao.TestDAO;
 import us.mn.state.health.lims.test.dao.TestSectionDAO;
 import us.mn.state.health.lims.test.daoimpl.TestDAOImpl;
@@ -71,7 +86,9 @@ import us.mn.state.health.lims.test.valueholder.TestSection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +109,7 @@ public class SampleEditUpdateAction extends BaseAction {
     private static final SampleRequesterDAO sampleRequesterDAO = new SampleRequesterDAOImpl();
     private static final OrganizationDAO organizationDAO = new OrganizationDAOImpl();
     private static final OrganizationOrganizationTypeDAO orgOrgTypeDAO = new OrganizationOrganizationTypeDAOImpl();
+    private static final SampleProjectDAO sampleProjectDAO = new SampleProjectDAOImpl();
 
 	static {
 		CANCELED_TEST_STATUS_ID = StatusService.getInstance().getStatusID(AnalysisStatus.Canceled);
@@ -207,6 +225,10 @@ public class SampleEditUpdateAction extends BaseAction {
                 }
             }
 
+            if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_MODAL_VERSION) &&
+            	FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REJECTION_IN_MODAL_VERSION))
+            	persistSampleRejectionData(addedSamples, updatedSample);
+            
             if( referringPerson != null){
                 if(referringPerson.getId() == null){
                     personDAO.insertData( referringPerson );
@@ -242,6 +264,15 @@ public class SampleEditUpdateAction extends BaseAction {
 
             if( orderArtifacts.getDeletableSampleOrganizationRequester() != null){
                 sampleRequesterDAO.delete(orderArtifacts.getDeletableSampleOrganizationRequester());
+            }
+
+            if (orderArtifacts.getSampleProjects() != null && orderArtifacts.getSampleProjects().length > 0) {
+            	for (SampleProject sp : orderArtifacts.getSampleProjects())
+            		sampleProjectDAO.insertOrUpdateData(sp);
+            }
+
+            if (orderArtifacts.getDeletableSampleProjects() != null && orderArtifacts.getDeletableSampleProjects().length > 0) {
+            	sampleProjectDAO.deleteData(Arrays.asList(orderArtifacts.getDeletableSampleProjects()), currentUserId);
             }
 
             tx.commit();
@@ -491,6 +522,42 @@ public class SampleEditUpdateAction extends BaseAction {
 		}
 
 		return new Analysis();
+	}
+
+	private void persistSampleRejectionData(List<SampleTestCollection> stcList, Sample sample) {
+		SampleQaEventDAO sampleQaEventDAO = new SampleQaEventDAOImpl();
+		QaObservationDAO qaObservationDAO = new QaObservationDAOImpl();
+		NoteDAO noteDAO = new NoteDAOImpl();
+
+		QaEvent qaEvent = new QaEvent();
+		QaEventDAO qaEventDAO = new QaEventDAOImpl();
+		qaEvent.setQaEventName("Other");
+		qaEvent = qaEventDAO.getQaEventByName(qaEvent);
+		String otherId = qaEvent.getId();
+
+		for (SampleTestCollection stc : stcList) {
+			if (stc.rejections != null && !stc.rejections.isEmpty()) {
+				for (QAService qaService : stc.rejections) {
+					SampleQaEvent event = qaService.getSampleQaEvent();
+					event.setSample(sample);
+					sampleQaEventDAO.insertData(event);
+
+					/* persist "Section" and "Authorizer" QaObservations for the SampleQaEvent */
+					for (QaObservation observation : qaService.getUpdatedObservations()) {
+						observation.setObservedId(event.getId());
+						qaObservationDAO.insertData(observation);
+					}
+					
+					/* persist "Other Reason" note, if present */
+					if (!GenericValidator.isBlankOrNull(otherId) &&
+						otherId.equals(qaService.getQAEvent().getId()) &&
+						stc.rejectionOtherReason != null) {
+						stc.rejectionOtherReason.setReferenceId(event.getId());
+						noteDAO.insertData(stc.rejectionOtherReason);
+					}			 
+				}
+			}
+		}
 	}
 
 	protected String getPageTitleKey() {

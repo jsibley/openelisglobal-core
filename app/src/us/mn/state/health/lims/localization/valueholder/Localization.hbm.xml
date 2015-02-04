@@ -31,5 +31,6 @@
         <property name="description" column="description" type="java.lang.String" />
         <property name="english" column="english" type="java.lang.String" />
         <property name="french" column="french" type="java.lang.String" />
+        <property name="vietnamese" column="vietnamese" type="java.lang.String" />
     </class>
 </hibernate-mapping>

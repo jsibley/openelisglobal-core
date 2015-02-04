@@ -32,5 +32,6 @@
     <include file="OE4.2/CI_IPCIData.xml" />
     <include file="OE4.2/CI_LNSPData.xml" />
     <include file="OE4.2/HaitiClinicalData.xml" />
+	<include file="OE4.2/VN_APHL/VN_APHL.xml"/>
     <include file="OE4.2/PostCatalogUpdate.xml" />
 </databaseChangeLog>

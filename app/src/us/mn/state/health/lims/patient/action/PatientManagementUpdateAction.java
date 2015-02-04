@@ -26,6 +26,7 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessages;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.Transaction;
+
 import us.mn.state.health.lims.address.dao.AddressPartDAO;
 import us.mn.state.health.lims.address.dao.PersonAddressDAO;
 import us.mn.state.health.lims.address.daoimpl.AddressPartDAOImpl;
@@ -42,6 +43,7 @@ import us.mn.state.health.lims.hibernate.HibernateUtil;
 import us.mn.state.health.lims.patient.action.bean.PatientManagementInfo;
 import us.mn.state.health.lims.patient.dao.PatientDAO;
 import us.mn.state.health.lims.patient.daoimpl.PatientDAOImpl;
+import us.mn.state.health.lims.patient.util.PatientUtil;
 import us.mn.state.health.lims.patient.valueholder.Patient;
 import us.mn.state.health.lims.patientidentity.dao.PatientIdentityDAO;
 import us.mn.state.health.lims.patientidentity.daoimpl.PatientIdentityDAOImpl;
@@ -59,6 +61,7 @@ import us.mn.state.health.lims.sample.daoimpl.SearchResultsDAOImp;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -74,10 +77,13 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 	private static PatientDAO patientDAO = new PatientDAOImpl();
 	private static PersonAddressDAO personAddressDAO = new PersonAddressDAOImpl();
 	protected PatientUpdateStatus patientUpdateStatus = PatientUpdateStatus.NO_ACTION;
+	private boolean insertPersonOnUpdate = false;
 
 	private static String ADDRESS_PART_VILLAGE_ID;
 	private static String ADDRESS_PART_COMMUNE_ID;
 	private static String ADDRESS_PART_DEPT_ID;
+	private static String ADDRESS_PART_DISTRICT_ID;
+	private static String ADDRESS_PART_WARD_ID;
 
 	public static enum PatientUpdateStatus {
 		NO_ACTION, UPDATE, ADD
@@ -94,6 +100,10 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 				ADDRESS_PART_COMMUNE_ID = addressPart.getId();
 			}else if( "village".equals(addressPart.getPartName())){
 				ADDRESS_PART_VILLAGE_ID = addressPart.getId();
+			}else if( "district".equals(addressPart.getPartName())){
+				ADDRESS_PART_DISTRICT_ID = addressPart.getId();
+			}else if( "ward".equals(addressPart.getPartName())){
+				ADDRESS_PART_WARD_ID = addressPart.getId();
 			}
 		}
 	}
@@ -248,9 +258,12 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 
 		patientID = patientInfo.getPatientPK();
 		patient = patientDAO.readPatient(patientID);
-		person = patient.getPerson();
-
-		patientIdentities = identityDAO.getPatientIdentitiesForPatient(patient.getId());
+		if (patient.getPerson().getId().equals(PatientUtil.getUnknownPerson().getId())) {
+			insertPersonOnUpdate = true;
+		} else {
+			person = patient.getPerson();
+			patientIdentities = identityDAO.getPatientIdentitiesForPatient(patient.getId());
+		}
 	}
 
 	/*
@@ -303,7 +316,7 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 	public void persistPatientData(PatientManagementInfo patientInfo) throws LIMSRuntimeException {
 		PersonDAO personDAO = new PersonDAOImpl();
 
-		if (patientUpdateStatus == PatientUpdateStatus.ADD) {
+		if (patientUpdateStatus == PatientUpdateStatus.ADD || insertPersonOnUpdate) {
 			personDAO.insertData(person);
 		} else if (patientUpdateStatus == PatientUpdateStatus.UPDATE) {
 			personDAO.updateData(person);
@@ -333,6 +346,7 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 		persistIdentityType(patientInfo.getAka(), "AKA");
 		persistIdentityType(patientInfo.getInsuranceNumber(), "INSURANCE");
 		persistIdentityType(patientInfo.getOccupation(), "OCCUPATION");
+		persistIdentityType(patientInfo.getEmployerName(), "EMPLOYER_NAME");
 		persistIdentityType(patientInfo.getSubjectNumber(), "SUBJECT");
 		persistIdentityType(patientInfo.getMothersInitial(), "MOTHERS_INITIAL");
 		persistIdentityType(patientInfo.getEducation(), "EDUCATION");
@@ -347,6 +361,8 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 		PersonAddress village = null;
 		PersonAddress commune = null;
 		PersonAddress dept = null;
+		PersonAddress district = null;
+		PersonAddress ward = null;
 		List<PersonAddress> personAddressList = personAddressDAO.getAddressPartsByPersonId(person.getId());
 
 		for( PersonAddress address : personAddressList){
@@ -368,6 +384,19 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 					dept.setSysUserId(currentUserId);
 					personAddressDAO.update(dept);
 				}
+			}else if( address.getAddressPartId().equals(ADDRESS_PART_DISTRICT_ID)){
+				district = address;
+				if( !GenericValidator.isBlankOrNull(patientInfo.getAddressDistrict()) && !patientInfo.getAddressDistrict().equals("0")){
+					district.setValue(patientInfo.getAddressDistrict());
+					district.setType("D");
+					district.setSysUserId(currentUserId);
+					personAddressDAO.update(district);
+				}
+			}else if( address.getAddressPartId().equals(ADDRESS_PART_WARD_ID)){
+				ward = address;
+				ward.setValue(patientInfo.getAddressWard());
+				ward.setSysUserId(currentUserId);
+				personAddressDAO.update(ward);
 			}
 		}
 
@@ -381,6 +410,14 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 
 		if( dept == null && patientInfo.getAddressDepartment() != null && !patientInfo.getAddressDepartment().equals("0")){
 			insertNewPatientInfo(ADDRESS_PART_DEPT_ID, patientInfo.getAddressDepartment(), "D");
+		}
+
+		if( district == null && patientInfo.getAddressDistrict() != null && !patientInfo.getAddressDistrict().equals("0")){
+			insertNewPatientInfo(ADDRESS_PART_DISTRICT_ID, patientInfo.getAddressDistrict(), "D");
+		}
+
+		if( ward == null){
+			insertNewPatientInfo(ADDRESS_PART_WARD_ID, patientInfo.getAddressWard(), "T");
 		}
 
 	}
@@ -473,6 +510,6 @@ public class PatientManagementUpdateAction extends BaseAction implements IPatien
 	}
 
 	public String getPatientId(BaseActionForm dynaForm) {
-		return GenericValidator.isBlankOrNull(patientID) ? dynaForm.getString("patientPK") : patientID;
+		return GenericValidator.isBlankOrNull(patientID) && dynaForm != null ? dynaForm.getString("patientPK") : patientID;
 	}
 }

@@ -75,11 +75,19 @@ public class DefaultFormFields extends AFormFields {
 		setFieldFalse(Field.ResultsReferral);
 		setFieldFalse(Field.ValueHozSpaceOnResults);
 		setFieldFalse(Field.InitialSampleCondition);
+		setFieldFalse(Field.ADDRESS_DISTRICT);
+		setFieldFalse(Field.ADDRESS_WARD);
+		setFieldFalse(Field.LINK_DISTRICTS_TO_CITIES);
         setFieldFalse(Field.OrganizationCLIA);
         setFieldFalse(Field.OrganizationParent);
 		setFieldFalse(Field.PatientRequired_SampleConfirmation);
         setFieldFalse(Field.SampleCondition);
         setFieldFalse(Field.Project);        
+        setFieldFalse(Field.PROJECT_OR_NAME);        
+        setFieldFalse(Field.PROJECT2_OR_NAME);        
+        setFieldFalse(Field.SUBMITTER_NUMBER);        
+        setFieldFalse(Field.EXTERNAL_ID);        
+        setFieldFalse(Field.EXTERNAL_ID_REQUIRED);        
         setFieldFalse(Field.NON_CONFORMITY_SITE_LIST);
         setFieldFalse(Field.NON_CONFORMITY_SITE_LIST_USER_ADDABLE);
 		setFieldFalse(Field.PatientIDRequired_SampleConfirmation);
@@ -105,6 +113,21 @@ public class DefaultFormFields extends AFormFields {
 		setFieldFalse(Field.QASubjectNumber);
 		setFieldFalse(Field.QATimeWithDate);
 		setFieldFalse(Field.SAMPLE_ENTRY_USE_REFFERING_PATIENT_NUMBER);
+		setFieldFalse(Field.SAMPLE_ENTRY_MODAL_VERSION);
+		setFieldFalse(Field.SAMPLE_ENTRY_REJECTION_IN_MODAL_VERSION);
+		setFieldFalse(Field.SINGLE_NAME_FIELD);
+		setFieldFalse(Field.PATIENT_CITY_PICKLIST);
+		setFieldFalse(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT);
+		setFieldFalse(Field.SAMPLE_ENTRY_ORDER_URGENCY);
+		setFieldFalse(Field.SAMPLE_ENTRY_PATIENT_CLINICAL_DEPT);
+		setFieldFalse(Field.SAMPLE_ENTRY_PATIENT_AGE_VALUE_AND_UNITS);
+		setFieldFalse(Field.SAMPLE_ENTRY_PATIENT_DIAGNOSIS);
+		setFieldFalse(Field.SAMPLE_ENTRY_PATIENT_BED_NUMBER);
+		setFieldFalse(Field.SAMPLE_ENTRY_PATIENT_ROOM_NUMBER);
+		setFieldFalse(Field.SAMPLE_ENTRY_PATIENT_EMPLOYER_NAME);
+		setFieldFalse(Field.SAMPLE_ENTRY_MEDICAL_RECORD_CHART_NUMBER);
+		setFieldFalse(Field.SAMPLE_ENTRY_COMPACT_LAYOUT);
+		setFieldFalse(Field.LAB_NUMBER_USED_ONLY_IF_SPECIMENS);
 		setFieldFalse(Field.NON_CONFORMITY_PROVIDER_ADDRESS);
         setFieldFalse( Field.TEST_LOCATION_CODE );
 	}
@@ -138,6 +161,8 @@ public class DefaultFormFields extends AFormFields {
 			return new CI_IPCIFormFields().getImplementationAttributes();
 		}else if(IActionConstants.FORM_FIELD_SET_CI_REGIONAL.equals(fieldSet)){
 			return new CI_RegionalFormFields().getImplementationAttributes();
+		}else if(IActionConstants.FORM_FIELD_SET_VN_APHL.equals(fieldSet)){
+			return new VN_APHLFormFields().getImplementationAttributes();
 		}
 
 		return null;

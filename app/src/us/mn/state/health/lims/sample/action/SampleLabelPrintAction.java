@@ -48,8 +48,6 @@ public class SampleLabelPrintAction extends BaseAction {
 		// initialize the form
 		dynaForm.initialize(mapping);
 
-        dynaForm.set("numberOfSamples", "0");
-
   		//System.out.println("I am in SampleLabelPrintAction this is forward " + forward);
 
 		return mapping.findForward(forward);

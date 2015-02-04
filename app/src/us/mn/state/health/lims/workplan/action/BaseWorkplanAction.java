@@ -74,7 +74,8 @@ public class BaseWorkplanAction extends BaseAction {
 		CYTOBACTERIOLOGY,
 		MYCOLOGY,
 		SEROLOGY_IMMUNOLOGY,
-        MALARIA
+        MALARIA,
+        MICROBIOLOGY
 	}
 
 	protected WorkplanType workplanType = WorkplanType.UNKNOWN;	

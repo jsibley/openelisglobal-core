@@ -27,7 +27,7 @@
 // We could put all of this 'copied-from' into a reusable JS Object included in a JSP file then here we would provide an override
 // of setPatientInfo with all of the values returned by patient search since FormFields encapsulats which fields to show and
 // setPatientInfo would pick up those to map into the edit form.
-function selectedPatientChanged(firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, mother, pk ){
+function selectedPatientChanged(firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, externalID, mother, pk ){
 	if( pk ){
 	    fieldValidator.setAllFieldsValid();
 	    patientLoader.clearFields();

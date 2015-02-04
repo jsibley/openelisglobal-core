@@ -67,6 +67,8 @@ public interface IPatientService{
 
     public abstract String getOccupation();
 
+    public abstract String getEmployerName();
+
     public abstract String getOrgSite();
 
     public abstract String getMothersInitial();

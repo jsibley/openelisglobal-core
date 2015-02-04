@@ -21,6 +21,8 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import us.mn.state.health.lims.common.action.BaseAction;
 import us.mn.state.health.lims.common.action.BaseActionForm;
+import us.mn.state.health.lims.common.services.DisplayListService;
+import us.mn.state.health.lims.common.services.DisplayListService.ListType;
 import us.mn.state.health.lims.common.util.DateUtil;
 import us.mn.state.health.lims.common.util.SystemConfiguration;
 import us.mn.state.health.lims.sample.valueholder.Sample;
@@ -61,6 +63,21 @@ public class QuickEntryAction
 		// Initialize the form.
 		dynaForm.initialize(mapping);
 
+		PropertyUtils.setProperty(dynaForm, "currentDate", DateUtil.getCurrentDateAsText());
+		PropertyUtils.setProperty(dynaForm, "sampleTypes", DisplayListService.getList(ListType.SAMPLE_TYPE_ACTIVE));
+		PropertyUtils.setProperty(dynaForm, "sampleSources", DisplayListService.getList(ListType.SAMPLE_SOURCE));
+		PropertyUtils.setProperty(dynaForm, "initConditionFormErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_INIT_COND_FORM_ERRORS));
+		PropertyUtils.setProperty(dynaForm, "initConditionLabelErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_INIT_COND_LABEL_ERRORS));
+		PropertyUtils.setProperty(dynaForm, "initConditionMiscList", DisplayListService.getList(ListType.SAMPLE_ENTRY_INIT_COND_MISC));
+		PropertyUtils.setProperty(dynaForm, "rejectionReasonFormErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_REJECTION_FORM_ERRORS));
+		PropertyUtils.setProperty(dynaForm, "rejectionReasonLabelErrorsList", DisplayListService.getList(ListType.SAMPLE_ENTRY_REJECTION_LABEL_ERRORS));
+		PropertyUtils.setProperty(dynaForm, "rejectionReasonMiscList", DisplayListService.getList(ListType.SAMPLE_ENTRY_REJECTION_MISC));
+        PropertyUtils.setProperty(dynaForm, "genderList", DisplayListService.getList(ListType.GENDERS));
+
+        // for backwards compatibility with non-modal version of sample entry
+		PropertyUtils.setProperty(dynaForm, "initialSampleConditionList", DisplayListService.getList(ListType.INITIAL_SAMPLE_CONDITION));
+		PropertyUtils.setProperty(dynaForm, "testSectionList", DisplayListService.getList(ListType.TEST_SECTION));
+
 		Sample	sample	= new Sample();
 
 		// Set received date and entered date to today's date
@@ -91,7 +108,7 @@ public class QuickEntryAction
 		PropertyUtils.copyProperties(form, sample);
 
 		PropertyUtils.setProperty(form, "currentDate",		dateAsText);
-		request.setAttribute("menuDefinition", "QuickEntryDefinition");
+		request.setAttribute("menuDefinition", "BatchEntryDefinition");
 		return mapping.findForward(forward);
 	}
 	//==============================================================

@@ -53,6 +53,11 @@ public class FormFields {
 		OrganizationMultiUnit,                  //Include multiunit status with organization address info
 		OrganizationOrgId,                      //Include db id with organization info
 		Project,                                //Include project (RETROCI) with non-conformity info
+		PROJECT_OR_NAME,                        //Include project (VN) with order request info
+		PROJECT2_OR_NAME,                       //Include secondary project (VN) with order request info
+		SUBMITTER_NUMBER,                       //Include submitter number (VN) with order request info
+		EXTERNAL_ID,                       		//Include external ID (VN) with patient info
+		EXTERNAL_ID_REQUIRED,              		//Should external ID (VN) be required
 		SampleCondition,                        //Allow for collection of sample condition with non-conformity
 		NON_CONFORMITY_SITE_LIST,               // site (patient entry or nonconforming) is defined by a list of sites.
 		NON_CONFORMITY_SITE_LIST_USER_ADDABLE,  //Should the user be able to add to the site list
@@ -61,6 +66,9 @@ public class FormFields {
         ADDRESS_DEPARTMENT,                      //Is department part of an address
         ADDRESS_COMMUNE,                         //Is a commune part of an address
         ADDRESS_VILLAGE,                         //Is a village part of an address
+		ADDRESS_DISTRICT,						//Is a district part of an address (as in VN)
+		ADDRESS_WARD,							//Is a ward part of an address (as in VN)
+		LINK_DISTRICTS_TO_CITIES,				//Populate district list based on selected city (as in VN)
 		DepersonalizedResults,                  //Should results entry have personal identifiers
 		SEARCH_PATIENT_WITH_LAB_NO,             //Should lab number be part of patient search
 		ResultsReferral,                        //Can results be referred out
@@ -88,6 +96,21 @@ public class FormFields {
 		SampleEntrySampleCollector,             //Include name of sample collector
 		SampleEntryRequesterLastNameRequired,   //Is the requester name required
 		SAMPLE_ENTRY_USE_REFFERING_PATIENT_NUMBER,//Include referral patient number
+		SAMPLE_ENTRY_MODAL_VERSION,				//Should the modal version for specimen/test selection be used on the sample entry screen, as used in VN?
+		SAMPLE_ENTRY_REJECTION_IN_MODAL_VERSION,//Should rejection be allowed in the modal version of specimen/test selection, as used in VN?
+		SINGLE_NAME_FIELD,						//Should there only be one name entry field (with data stored in the 'first_name' db column, as used in VN)?
+		PATIENT_CITY_PICKLIST,					//Should the patient management city input be rendered as a picklist instead of text, as used in VN?
+		SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT,//Should the order requester work phone and extension be two separate fields, as used in VN?
+		SAMPLE_ENTRY_ORDER_URGENCY,				//Include patient/order urgency on sample entry, as used in VN?
+		SAMPLE_ENTRY_PATIENT_CLINICAL_DEPT,		//Include patient department where test was ordered from (as in VN)
+		SAMPLE_ENTRY_PATIENT_AGE_VALUE_AND_UNITS,//Should there be two fields to collect patient age (value and units) not linked to the birthdate field, as used in VN?
+		SAMPLE_ENTRY_PATIENT_DIAGNOSIS,			//Include patient diagnosis on sample entry (as in VN)
+		SAMPLE_ENTRY_PATIENT_BED_NUMBER,		//Include patient bed number on sample entry (as in VN)
+		SAMPLE_ENTRY_PATIENT_ROOM_NUMBER,		//Include patient room number on sample entry (as in VN)
+		SAMPLE_ENTRY_PATIENT_EMPLOYER_NAME,		//Include patient's employer's name on sample entry (as in VN)
+		SAMPLE_ENTRY_MEDICAL_RECORD_CHART_NUMBER,//Include medical record/chart number on sample entry (as in VN)
+		SAMPLE_ENTRY_COMPACT_LAYOUT,			//Should the sample entry page be as compact as possible (more width, less length), as used in VN?
+		LAB_NUMBER_USED_ONLY_IF_SPECIMENS,		//Should accession number be considered 'used' only if it has specimens associated with it, as used in VN?
 		PatientPhone,                           //Include patient phone with patient info
 		PatientHealthRegion,                    //Include patient health region with patient info
 		PatientHealthDistrict,                  //Include patient health district with patient info

@@ -16,6 +16,9 @@
 package us.mn.state.health.lims.common.provider.validation;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -45,86 +48,60 @@ public class ProjectIdOrNameValidationProvider extends BaseValidationProvider {
 	public void processRequest(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
-		// get id from request
-		String targetId = (String) request.getParameter("id");
-		String formField = (String) request.getParameter("field");
+		// need to use 'URLDecoder.decode' since calling 'request.getParameter' directly does not handle the encoding properly
+		String decodedRequest = URLDecoder.decode(request.getQueryString(), "UTF-8");
+		Map<String, String> paramMap = new LinkedHashMap<String, String>();
+		for (String paramPair : decodedRequest.split("&")) {
+		   String[] pairs = paramPair.split("=", 2);
+		   paramMap.put(pairs[0], pairs[1]);
+		}
+		String targetId = (String) paramMap.get("id");
+		String formField = (String) paramMap.get("field");
 		String result = validate(targetId);
 		// System.out.println("This is field being validated " + formField);
 		ajaxServlet.sendData(formField, result, request, response);
 	}
 
-	// modified for efficiency bugzilla 1367
 	public String validate(String targetId) throws LIMSRuntimeException {
 		StringBuffer s = new StringBuffer();
-
-		//bgm added StringUtil to check against a space being entered.
-		if (!StringUtil.isNullorNill(targetId)) {
+		try {
 			ProjectDAO projectDAO = new ProjectDAOImpl();
 			Project project = new Project();
-			try {
-				int i = Integer.parseInt(targetId);
-				//bugzilla 2438
+			if (StringUtil.isInteger(targetId) && !targetId.startsWith("-")) {
 				project.setLocalAbbreviation(targetId.trim());
-
-			} catch (NumberFormatException nfe) {
-                //bugzilla 2154
-				LogEvent.logError("ProjectIdOrNameValidationProvider","validate()",nfe.toString());   			
-				//if the id was not a number
-				project = null;
+				project = projectDAO.getProjectById(targetId.trim());
+			} else if (!StringUtil.isNullorNill(targetId.trim())){
+				project.setId("");
+				project.setProjectName(targetId.trim());
+				project = projectDAO.getProjectByName(project, true, true);
+			} else {
+				s.append(INVALID);
+				return s.toString();
 			}
-
-			if (project != null) {
-				//bugzilla 2438
-				project = projectDAO.getProjectByLocalAbbreviation(project, true);
+			
+			if (null != project) {
+				if (project.getIsActive().equals(YES)) {
+					// This is particular to projId validation for HSE1 and HSE2:
+					// the message appended to VALID is the projectName that
+					// can then be displayed when User enters valid Project Id
+					// (see humanSampleOne.jsp, humanSampleTwo.jsp)
+				
+					s.append(VALID);
+					if (StringUtil.isInteger(targetId) && !targetId.startsWith("-")) {
+						 if (null != project.getProjectName())
+							 s.append(project.getProjectName());
+					} else 
+						s.append(project.getId());
+				}				
 			}
-			//bugzilla 2112
-			try {
-				if (null != project) {
-					//bugzilla 1978			
-					if (project.getIsActive().equals(YES)) {
-						// This is particular to projId validation for HSE1 and HSE2:
-						// the message appended to VALID is the projectName that
-						// can then be displayed when User enters valid Project Id
-						// (see humanSampleOne.jsp, humanSampleTwo.jsp)
-					
-						//bgm - bugzilla 1535 commented out s.append(project.getProjectName()); to check first
-						if(null != project.getProjectName()){
-							s.append(VALID);
-							s.append(project.getProjectName());
-						}else
-							s.append(INVALID);
-					} else {
-						s.append(INVALID);
-					}				
-				} else {
-					project = new Project();
-					project.setId("");
-					project.setProjectName(targetId.trim());
-					project = projectDAO.getProjectByName(project, true, true);
-					if (project != null) {
-						s.append(VALID);
-						//bugzilla 2438
-						s.append(project.getLocalAbbreviation());
-					} else {
-						s.append(INVALID);
-					}
-				}
-			} catch (Exception e) {
-                //bugzilla 2154
-			    LogEvent.logError("ProjectIdOrNameValidationProvider","validate()",e.toString());
+			if (s.length() == 0) {
 				s.append(INVALID);
 			}
-		} else {
-		//bugzilla 1697
-			s.append(VALID);
+		} catch (Exception e) {
+			LogEvent.logError("ProjectIdOrNameValidationProvider","validate()",e.toString());
+			s.append(INVALID);
 		}
-		
-		/*
-		 * System.out.println("I am in projIdValidator returning " +
-		 * s.toString() + " targetId " + targetId);
-		 */
+				
 		return s.toString();
-
 	}
-
 }

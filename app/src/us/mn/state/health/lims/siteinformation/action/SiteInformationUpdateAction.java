@@ -82,7 +82,8 @@ public class SiteInformationUpdateAction extends BaseAction {
             forward = validateAndUpdateLocalization(request,
                                                     localizationId,
                                                     dynaForm.getString( "englishValue" ),
-                                                    dynaForm.getString( "frenchValue" ));
+                                                    dynaForm.getString( "frenchValue" ),
+                                                    dynaForm.getString( "vietnameseValue" ));
         } else{
             forward = validateAndUpdateSiteInformation( request, dynaForm, isNew );
         }
@@ -93,10 +94,10 @@ public class SiteInformationUpdateAction extends BaseAction {
 
 	}
 
-    private String validateAndUpdateLocalization( HttpServletRequest request, String localizationId, String english, String french ){
+    private String validateAndUpdateLocalization( HttpServletRequest request, String localizationId, String english, String french, String vietnamese ){
         LocalizationService localizationService = new LocalizationService(localizationId);
         localizationService.setCurrentUserId( currentUserId );
-        boolean isNeeded = localizationService.updateLocalizationIfNeeded(english, french );
+        boolean isNeeded = localizationService.updateLocalizationIfNeeded(english, french, vietnamese);
 
         String forward = FWD_SUCCESS_INSERT;
         if( isNeeded){

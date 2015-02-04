@@ -115,6 +115,8 @@ function assignTestsToSampleTypeTests(sampleType, entryDate){
     var testIdString = "";
     var panelIdString = "";
     var testDisplayString = "";
+    var idArr = [];
+    var nameArr = [];
     
     addTypeToTable(addTable, sampleDescription, sampleTypeValue, currentTime,  entryDate );
 
@@ -125,16 +127,27 @@ function assignTestsToSampleTypeTests(sampleType, entryDate){
 	if ($("tests_" + index))
     	testDisplayString = $("tests_" + index).value;
     
-    for (var i=0; i<sampleType.tests.length; i++ ) {
-        if (testIdString.length == 0) {
-            testIdString = sampleType.tests[i].id;
-            testDisplayString = sampleType.tests[i].name;
-        } else {
-            testIdString = testIdString + "," + sampleType.tests[i].id;
-            testDisplayString = testDisplayString + "," + sampleType.tests[i].name;
-        }                                                                           
-    }
-    
+	if (useModalSampleEntry) {  // rewritten to avoid adding the same id or name more than once
+		for (var i=0; i<sampleType.tests.length; i++ ) {
+			if ($jq.inArray(sampleType.tests[i].id, idArr) == -1) {
+				idArr.push(sampleType.tests[i].id);
+			}
+			if ($jq.inArray(sampleType.tests[i].name, nameArr) == -1) {
+				nameArr.push(sampleType.tests[i].name);
+			}
+		}
+	} else {
+		for (var i=0; i<sampleType.tests.length; i++ ) {
+        	if (testIdString.length == 0) {
+            	testIdString = sampleType.tests[i].id;
+            	testDisplayString = sampleType.tests[i].name;
+        	} else {
+            	testIdString = testIdString + "," + sampleType.tests[i].id;
+            	testDisplayString = testDisplayString + "," + sampleType.tests[i].name;
+        	}                                                                           
+    	}
+	}
+
     if (sampleType.setCrossTests == 'true') {
 	    for (var i=0; i<sampleType.crossTests.length; i++ ) {
 	        if (testIdString.length == 0) {
@@ -147,22 +160,47 @@ function assignTestsToSampleTypeTests(sampleType, entryDate){
 	    }
     }
 
-    for (var i=0; i<sampleType.panels.length; i++ ) {
-        if (panelIdString.length == 0) {
-            panelIdString = sampleType.panels[i].id;
-        } else {
-            panelIdString = panelIdString + "," + sampleType.panels[i].id;
-        }
-        // add the panel tests to the list of testIds and tests
-        if (testIdString.length == 0) {
-        	testIdString = sampleType.panels[i].testIds;
-        	testDisplayString = sampleType.panels[i].tests;
-        } else {
-            testIdString = testIdString + "," + sampleType.panels[i].testIds;
-            testDisplayString = testDisplayString + "," + sampleType.panels[i].tests;        	
-        }
-    }
-    
+	if (useModalSampleEntry) {  // rewritten to avoid adding the same id or name more than once
+		for (var i=0; i<sampleType.panels.length; i++ ) {
+        	if (panelIdString.length == 0) {
+            	panelIdString = sampleType.panels[i].id;
+        	} else {
+            	panelIdString = panelIdString + "," + sampleType.panels[i].id;
+        	}
+        	// add the panel tests to the list of testIds and tests
+        	var panelTestIdsArr = sampleType.panels[i].testIds.split(",");
+        	for (var j = 0; j < panelTestIdsArr.length; j++) {
+        		if ($jq.inArray(panelTestIdsArr[j], idArr) == -1) {
+        			idArr.push(panelTestIdsArr[j]);
+        		}
+        	}
+        	var panelTestNamesArr = sampleType.panels[i].tests.split(",");
+        	for (var j = 0; j < panelTestNamesArr.length; j++) {
+        		if ($jq.inArray(panelTestNamesArr[j], nameArr) == -1) {
+        			nameArr.push(panelTestNamesArr[j]);
+        		}
+        	}
+		}
+		testIdString = idArr.join(",");
+		testDisplayString = nameArr.join(",");
+	} else {
+		for (var i=0; i<sampleType.panels.length; i++ ) {
+        	if (panelIdString.length == 0) {
+            	panelIdString = sampleType.panels[i].id;
+        	} else {
+            	panelIdString = panelIdString + "," + sampleType.panels[i].id;
+        	}
+        	// add the panel tests to the list of testIds and tests
+        	if (testIdString.length == 0) {
+        		testIdString = sampleType.panels[i].testIds;
+        		testDisplayString = sampleType.panels[i].tests;
+        	} else {
+            	testIdString = testIdString + "," + sampleType.panels[i].testIds;
+            	testDisplayString = testDisplayString + "," + sampleType.panels[i].tests;        	
+        	}
+    	}
+	}
+
     if (sampleType.setCrossPanels == 'true') {
 	    for (var i=0; i<sampleType.crossPanels.length; i++ ) {
 	        if (panelIdString.length == 0) {
@@ -173,10 +211,14 @@ function assignTestsToSampleTypeTests(sampleType, entryDate){
 	    }
     }
 
-    $("tests_" + index).value = testDisplayString;
     $("testIds_" + index).value = testIdString;
     $("panelIds_" + index).value = panelIdString;
-    
+    if (useModalSampleEntry) {
+    	$jq("#tests_" + index).html(testDisplayString).show();
+    	toggleAssignAndRejectDisabled(index, false);
+    } else {
+    	$("tests_" + index).value = testDisplayString;
+    }
 }
 
 // This is a hash mapping of key cross test name and value is CrossSampleType
@@ -207,6 +249,8 @@ function CrossPanel(id, name) {
     this.name = name;
     this.sampleTypes = new Array();
     this.typeMap = new Array();
+    this.testIds = new Array();
+    this.testNames = "";
 }
 
 // Test object
@@ -233,16 +277,17 @@ function getCrossSampleTypeOrderMapEntry(id) {
 
 
 function populateCrossPanelsAndTests(panels, tests, entryDate) {       
+	var buffer = ["<table width='100%'><tr><td><br></td></tr><tr align='left'><td><table " + (useModalSampleEntry ? "width='30%'" : "") + " id='crossPanelsTestsTable'>"];
     
-    var buffer = ["<table width='100%'><tr><td><br></td></tr><tr align='left'><td><table id='crossPanelsTestsTable'>"];
-    
-    populateCrossPanels(panels, buffer, entryDate);
+	if (useModalSampleEntry)
+		buffer.push("<tr><th colspan='4'>" + (useModalSampleEntry ? assignSampletypesHeader : "") + "</th></tr>");
 
-    populateCrossTests(tests, buffer, entryDate);
+   	populateCrossPanels(panels, buffer, entryDate);
+
+   	populateCrossTests(tests, buffer, entryDate);
     
-    buffer.push("<tr><td colspan='4'><br></td></tr></table></td></tr></table>");
-    $jq('#crossPanels').html(buffer.join(""));
-    
+   	buffer.push("<tr><td colspan='4'><br></td></tr></table></td></tr></table>");
+  	$jq('#crossPanels').html(buffer.join(""));
 }
 
 function removeCrossPanelsTestsTable() {
@@ -263,22 +308,21 @@ function populateCrossPanels(panels, buffer, entryDate) {
 	    buffer.push("<tr><td>Panel&nbsp;</td>");
 	
 	    for (i = 0; i <= sampleTypeOrder; i = i + 1) {                                                                                                                                                                                                                                                                                                                                                                                               
-	        buffer.push("<td>&nbsp;");
+	        buffer.push("<td" + (useModalSampleEntry ? " align='center'" : "") + ">&nbsp;");
 	        var sampleTypeId = getCrossSampleTypeOrderMapEntry(i);
 	        buffer.push(crossSampleTypeMap[sampleTypeId].name);
 	        buffer.push("&nbsp;</td>");
 	    }
 	    buffer.push("</tr><tr><td colspan='4'><hr size='3' /></td></tr>");
 	    
-	
 	    for (i = 0; i < panels.length; i = i + 1) {
-	    	buffer.push("<tr><td>", panels[i].name, "<span class='requiredlabel'>*</span><input type='hidden' class='required' name='hidden-" + panels[i].name + "' value='unselected'/>", "</td>");
+	    	buffer.push("<tr><td>", panels[i].name, "&nbsp;<span class='requiredlabel'>*</span><input type='hidden' class='required' name='hidden-" + panels[i].name + "' value='unselected'/>", "</td>");
 	        for (j = 0; j <= sampleTypeOrder; j = j + 1) {
 	            var sampleTypeId = crossSampleTypeOrderMap[j];
 	            var sampleType = getCrossSampleTypeMapEntry(sampleTypeId);
 	            var type = panels[i].typeMap[sampleType.name];
 	            if (type === "t") {
-	            	buffer.push("<td align='middle'><INPUT TYPE='RADIO' NAME='" + panels[i].id + "' ID='" + sampleTypeId + "' value='" + sampleTypeId + "' onclick=\"crossPanelSelected(" +panels[i].id + ", '" + panels[i].name + "'," + sampleTypeId + ", '" + sampleType.name + "', '" + entryDate  + "')\"/></td>");
+	            	buffer.push("<td align='middle'><INPUT TYPE='RADIO' NAME='" + panels[i].id + "' ID='" + sampleTypeId + "' value='" + sampleTypeId + "' onclick=\"crossPanelSelected" + (useModalSampleEntry ? "Modal($jq(this).parent().parent().parent().children().index($jq(this).parent().parent()), " : "(") + panels[i].id + ", '" + panels[i].name + "'," + sampleTypeId + ", '" + sampleType.name + "', '" + entryDate  + "')\"/></td>");
 	            } else {
 	            	buffer.push("<td></td>");
 	            }
@@ -570,9 +614,9 @@ function populateCrossTests(tests, buffer, entryDate) {
 	var i = 0, x = 0, y = 0;
 	
 	if (tests && tests.length > 0) {
-	    buffer.push("<tr><td colspan='4'><br></td></tr><tr><td><br>Test&nbsp;</td>");
+	    buffer.push((useModalSampleEntry ? "" : "<tr><td colspan='4'><br></td></tr>") + "<tr><td><br>Test&nbsp;</td>");
 	    for (i = 0; i <= sampleTypeOrder; i = i + 1) {
-	       buffer.push("<td>&nbsp;");
+	       buffer.push("<td" + (useModalSampleEntry ? " align='center'><br" : "") + ">&nbsp;");
 	        var sampleTypeId = getCrossSampleTypeOrderMapEntry(i);
 	        buffer.push(crossSampleTypeMap[sampleTypeId].name);
 	        buffer.push("&nbsp;</td>");
@@ -588,7 +632,7 @@ function populateCrossTests(tests, buffer, entryDate) {
 	            var type = tests[x].typeMap[sampleType.name];
 	            if (type === "t") {
                                                                                                                                                           
-	            	buffer.push("<td align='middle'><INPUT TYPE='RADIO' NAME='" + tests[x].name + "' ID='" + sampleTypeId + "' value='" + sampleTypeId + "' onclick=\"crossTestSelected('" + tests[x].name + "'," + sampleTypeId + ", '" + sampleType.name + "', '" + entryDate  + "')\"/></td>");
+	            	buffer.push("<td align='middle'><INPUT TYPE='RADIO' NAME='" + tests[x].name + "' ID='" + sampleTypeId + "' value='" + sampleTypeId + "' onclick=\"crossTestSelected" + (useModalSampleEntry ? "Modal($jq(this).parent().parent().parent().children().index($jq(this).parent().parent()),'" : "('") + tests[x].name + "'," + sampleTypeId + ", '" + sampleType.name + "', '" + entryDate  + "')\"/></td>");
 	            } else {
 	            	buffer.push("<td></td>");
 	            }

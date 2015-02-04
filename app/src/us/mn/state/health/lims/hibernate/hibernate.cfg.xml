@@ -183,6 +183,8 @@
 	<mapping
 		resource="us/mn/state/health/lims/typeofsample/valueholder/TypeOfSamplePanel.hbm.xml" />
 	<mapping
+		resource="us/mn/state/health/lims/typeofsample/valueholder/TypeOfSampleSource.hbm.xml" />
+	<mapping
 		resource="us/mn/state/health/lims/typeofsample/valueholder/TypeOfSampleTest.hbm.xml" />
 	<mapping
 		resource="us/mn/state/health/lims/inventory/valueholder/InventoryItem.hbm.xml" />

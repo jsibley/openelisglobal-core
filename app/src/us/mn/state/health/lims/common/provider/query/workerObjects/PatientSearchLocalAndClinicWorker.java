@@ -59,7 +59,7 @@ public class PatientSearchLocalAndClinicWorker extends PatientSearchWorker {
 	 */
 	@Override
 	public String createSearchResultXML(String lastName, String firstName,
-			String STNumber, String subjectNumber, String nationalID, String patientID, String guid, StringBuilder xml) {
+			String STNumber, String subjectNumber, String nationalID, String externalID, String patientID, String guid, StringBuilder xml) {
 
 		// just to make the name shorter
 		ConfigurationProperties config = ConfigurationProperties.getInstance();

@@ -18,6 +18,7 @@
 package us.mn.state.health.lims.common.provider.query.workerObjects;
 
 import org.apache.commons.validator.GenericValidator;
+
 import us.mn.state.health.lims.common.action.IActionConstants;
 import us.mn.state.health.lims.common.provider.query.PatientSearchResults;
 import us.mn.state.health.lims.common.services.ObservationHistoryService;
@@ -40,7 +41,7 @@ public class PatientSearchLocalWorker extends PatientSearchWorker {
 
 	@Override
 	public String createSearchResultXML(String lastName, String firstName, String STNumber, String subjectNumber, String nationalID,
-			String patientID, String guid, StringBuilder xml)  {
+			String externalID, String patientID, String guid, StringBuilder xml)  {
 
 		String success = IActionConstants.VALID;
 

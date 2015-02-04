@@ -123,6 +123,7 @@ public class SiteInformationAction extends BaseAction {
             Localization localization = localizationService.getLocalization();
             PropertyUtils.setProperty(dynaForm, "englishValue", localization.getEnglish());
             PropertyUtils.setProperty(dynaForm, "frenchValue", localization.getFrench());
+            PropertyUtils.setProperty(dynaForm, "vietnameseValue", localization.getVietnamese());
 
         }
     }

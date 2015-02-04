@@ -16,6 +16,8 @@
 
 package us.mn.state.health.lims.common.services;
 
+import us.mn.state.health.lims.common.formfields.FormFields;
+import us.mn.state.health.lims.common.formfields.FormFields.Field;
 import us.mn.state.health.lims.common.util.ConfigurationProperties;
 import us.mn.state.health.lims.common.util.validator.GenericValidator;
 
@@ -57,7 +59,7 @@ public class PhoneNumberService{
                 .replaceAll( " ", "\\\\s" )
                 .replaceAll( "\\(", "\\\\(" )
                 .replaceAll( "\\)", "\\\\)" )
-                .replaceAll( "\\+", "\\\\+" ) + "(\\s+.*)?";
+                .replaceAll( "\\+", "\\\\+" ) + (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT) ? "" : "(\\s+.*)?");
     }
 
     public static boolean validatePhoneFormat( String format){

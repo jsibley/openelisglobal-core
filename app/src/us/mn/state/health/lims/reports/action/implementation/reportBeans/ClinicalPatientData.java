@@ -52,6 +52,8 @@ public class ClinicalPatientData{
     private String testSection;
     private String dept;
     private String commune;
+    private String ward;
+    private String district;
     private String healthDistrict = "";
     private String healthRegion = ""; 
     private int sectionSortOrder = 0;
@@ -111,6 +113,8 @@ public class ClinicalPatientData{
         testSection = data.getTestSection();
         dept = data.getDept();
         commune = data.getCommune();
+        ward = data.getWard();
+        district = data.getDistrict();
         healthDistrict = data.getHealthDistrict();
         healthRegion = data.getHealthRegion();
         sectionSortOrder = data.getSectionSortOrder();
@@ -381,6 +385,22 @@ public class ClinicalPatientData{
 
 	public void setCommune(String commune) {
 		this.commune = commune;
+	}
+
+	public String getWard() {
+		return ward;
+	}
+
+	public void setWard(String ward) {
+		this.ward = ward;
+	}
+
+	public String getDistrict() {
+		return district;
+	}
+
+	public void setDistrict(String district) {
+		this.district = district;
 	}
 
 

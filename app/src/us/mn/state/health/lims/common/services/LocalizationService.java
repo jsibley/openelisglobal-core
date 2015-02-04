@@ -56,6 +56,8 @@ public class LocalizationService implements LocaleChangeListener{
         }
         if( LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.FRENCH.getRepresentation() )){
             return localization.getFrench();
+        } else if (LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.VIETNAMESE.getRepresentation())) {
+        	return localization.getVietnamese();
         }else{
             return localization.getEnglish();
         }
@@ -65,11 +67,12 @@ public class LocalizationService implements LocaleChangeListener{
      * Checks to see if localization is needed, if so it does the update.
      * @param french The french localization
      * @param english The english localization
+     * @param vietnamese The vietnamese localization
      * @return true if the object can be found and an update is needed.  False if the id the service was created with is
-     * not valid or the french or english is empty or null or the french and english match what is already in the object
+     * not valid or any language value is empty or null or all language values match what is already in the object
      */
-    public boolean updateLocalizationIfNeeded( String english, String french){
-        if( localization == null || GenericValidator.isBlankOrNull( french ) || GenericValidator.isBlankOrNull( english )){
+    public boolean updateLocalizationIfNeeded( String english, String french, String vietnamese ){
+        if( localization == null || GenericValidator.isBlankOrNull( french ) || GenericValidator.isBlankOrNull( english ) || GenericValidator.isBlankOrNull( vietnamese ) ){
             return false;
         }
 
@@ -77,12 +80,13 @@ public class LocalizationService implements LocaleChangeListener{
             return false;
         }
 
-        if( english.equals( localization.getEnglish() ) && french.equals( localization.getFrench() )){
+        if( english.equals( localization.getEnglish() ) && french.equals( localization.getFrench() ) && vietnamese.equals( localization.getVietnamese() ) ){
             return false;
         }
 
         localization.setEnglish( english );
         localization.setFrench( french );
+        localization.setVietnamese( vietnamese );
         return true;
     }
 

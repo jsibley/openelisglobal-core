@@ -17,10 +17,12 @@
 package us.mn.state.health.lims.common.services;
 
 import org.apache.commons.validator.GenericValidator;
+
 import us.mn.state.health.lims.address.daoimpl.AddressPartDAOImpl;
 import us.mn.state.health.lims.address.daoimpl.PersonAddressDAOImpl;
 import us.mn.state.health.lims.address.valueholder.AddressPart;
 import us.mn.state.health.lims.address.valueholder.PersonAddress;
+import us.mn.state.health.lims.common.formfields.FormFields;
 import us.mn.state.health.lims.dictionary.dao.DictionaryDAO;
 import us.mn.state.health.lims.dictionary.daoimpl.DictionaryDAOImpl;
 import us.mn.state.health.lims.person.valueholder.Person;
@@ -89,8 +91,13 @@ public class PersonService {
 			}
 		}
 		
-		value = person.getCity();
-		addressMap.put("City", value == null ? "" : value.trim());
+		if (FormFields.getInstance().useField(FormFields.Field.PATIENT_CITY_PICKLIST) &&
+			!GenericValidator.isBlankOrNull(person.getCity()) && !"0".equals(person.getCity())) {
+			addressMap.put("City", dictionaryDAO.getDataForId(person.getCity()).getDictEntry());
+		} else {
+			value = person.getCity();
+			addressMap.put("City", value == null ? "" : value.trim());
+		}
 		value = person.getCountry();
 		addressMap.put("Country", value == null ? "" : value.trim());
 		value = person.getState();

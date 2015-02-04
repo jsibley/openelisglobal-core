@@ -34,6 +34,8 @@ public class AccessionNumberValidatorFactory {
 			return getSiteYearValidator();
 		}else if( accessionFormat.equals("PROGRAMNUM")){
 			return getProgramValidator();
+		}else if( accessionFormat.equals("YEAR_SITE_SIX")){
+			return getYearSiteNumValidator();
 		}if( accessionFormat.equals("YEARNUM_SIX")){
 			return getYearNumValidator(6, null);
 		}if( accessionFormat.equals("YEARNUM_DASH_SEVEN")){
@@ -81,5 +83,12 @@ public class AccessionNumberValidatorFactory {
 		return validator;
 	}
 
+	private IAccessionNumberValidator getYearSiteNumValidator() {
+		if( validator == null){
+			validator = new YearSiteNumAccessionValidator();
+		}
+
+		return validator;
+	}
 
 }

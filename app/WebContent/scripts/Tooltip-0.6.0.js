@@ -290,10 +290,12 @@ var Tooltip = {
 		}
 
 		try {
-			if (activator.Tooltip.isVisible) {
-				Tooltip._hide(activator, event);
-			} else {
-				Tooltip._show(activator, event);
+			if (activator) {
+				if (activator.Tooltip.isVisible) {
+					Tooltip._hide(activator, event);
+				} else {
+					Tooltip._show(activator, event);
+				}
 			}
 		}
 		catch (e) {

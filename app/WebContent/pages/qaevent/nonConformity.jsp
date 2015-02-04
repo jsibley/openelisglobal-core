@@ -27,6 +27,7 @@
     boolean useSiteList = FormFields.getInstance().useField(Field.NON_CONFORMITY_SITE_LIST);
     boolean useSubjectNo = FormFields.getInstance().useField(Field.QASubjectNumber);
     boolean useNationalID = FormFields.getInstance().useField(Field.NationalID);
+    boolean useExternalID = FormFields.getInstance().useField(Field.EXTERNAL_ID);
 %>
 <%
     String path = request.getContextPath();
@@ -431,6 +432,26 @@ function  processPhoneSuccess(xhr){
 			<logic:notEqual name='<%=formName%>' property="STNumber" value="">
 				<td>
 					<bean:write name="<%=formName%>" property="STNumber" />
+				</td>
+			</logic:notEqual>
+		</tr>
+		<% } %>
+		<% if ( useExternalID ) { %>
+		<tr>
+			<td >
+			    <%=StringUtil.getContextualMessageForKey("patient.externalId") %>
+				:
+			</td>
+			<html:hidden name='<%=formName%>'	property="externalIdNew" styleId="externalIdNew"/>
+			<logic:equal name='<%=formName%>' property="externalId" value="">
+				<td>
+					<html:text name='<%=formName %>' property="externalId"
+						onchange="makeDirty();$('externalIdNew').value = true;" />
+				</td>
+			</logic:equal>
+			<logic:notEqual name='<%=formName%>' property="externalId" value="">
+				<td>
+					<bean:write name="<%=formName%>" property="externalId" />
 				</td>
 			</logic:notEqual>
 		</tr>

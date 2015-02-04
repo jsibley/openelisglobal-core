@@ -243,9 +243,9 @@ public class TypeOfSampleDAOImpl extends BaseDAOImpl implements TypeOfSampleDAO 
 			String sql = "";
 			// bugzilla 1387 added domain parm
 			if (!StringUtil.isNullorNill(domain)) {
-				sql = "from TypeOfSample t where upper(t.description) like upper(:param) and t.domain = :param2 order by upper(t.description)";
+				sql = "from TypeOfSample t where upper(t.description) like upper(:param) and t.domain = :param2 and t.active = true order by upper(t.description)";
 			} else {
-				sql = "from TypeOfSample t where upper(t.description) like upper(:param) order by upper(t.description)";
+				sql = "from TypeOfSample t where upper(t.description) like upper(:param) and t.active = true order by upper(t.description)";
 
 			}
 			org.hibernate.Query query = HibernateUtil.getSession().createQuery(

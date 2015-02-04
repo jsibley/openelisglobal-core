@@ -21,6 +21,23 @@
             <form-property name="sampleOrderItems" type="us.mn.state.health.lims.sample.bean.SampleOrderItem" />
             <form-property name="initialSampleConditionList" type="java.util.Collection" />
             <form-property name="testSectionList"  type="java.util.Collection" />
+			<form-property name="displayOrderItemsInPatientManagement" type="java.lang.String" initial="" />
+            <!-- Below needed for modal version of sample entry -->
+	    	<form-property name="typeOfSampleDesc" type="java.lang.String" initial=""/> 
+	    	<form-property name="typeOfSampleId" type="java.lang.String" initial=""/> 
+	    	<form-property name="sourceOfSampleDesc" type="java.lang.String" initial=""/> 
+	    	<form-property name="sourceOfSampleId" type="java.lang.String" initial=""/> 
+			<form-property name="sampleSources" type="java.util.List" />
+			<form-property name="initConditionFormErrorsList" type="java.util.Collection" />
+			<form-property name="initConditionLabelErrorsList" type="java.util.Collection" />
+			<form-property name="initConditionMiscList" type="java.util.Collection" />
+			<form-property name="initConditionOther" type="java.util.Collection" />
+  	    	<form-property name="initialConditionOtherReason" type="java.lang.String" initial=""/> 
+			<form-property name="rejectionReasonList" type="java.lang.String" />
+			<form-property name="rejectionReasonFormErrorsList" type="java.util.Collection" />
+			<form-property name="rejectionReasonLabelErrorsList" type="java.util.Collection" />
+			<form-property name="rejectionReasonMiscList" type="java.util.Collection" />
+  	    	<form-property name="rejectionReasonOtherReason" type="java.lang.String" initial=""/> 
         </form-bean>
 
 		<form-bean name="SampleConfirmationEntryForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
@@ -65,6 +82,22 @@
             <form-property name="patientSearch" type="us.mn.state.health.lims.patient.action.bean.PatientSearch" />
             <form-property name="ableToCancelResults" type="java.lang.Boolean" initial="false" />
             <form-property name="warning" type="java.lang.String" initial="" />
+            <!-- Below needed for modal version of sample entry -->
+	    	<form-property name="typeOfSampleDesc" type="java.lang.String" initial=""/> 
+	    	<form-property name="typeOfSampleId" type="java.lang.String" initial=""/> 
+	    	<form-property name="sourceOfSampleDesc" type="java.lang.String" initial=""/> 
+	    	<form-property name="sourceOfSampleId" type="java.lang.String" initial=""/> 
+			<form-property name="sampleSources" type="java.util.List" />
+			<form-property name="initConditionFormErrorsList" type="java.util.Collection" />
+			<form-property name="initConditionLabelErrorsList" type="java.util.Collection" />
+			<form-property name="initConditionMiscList" type="java.util.Collection" />
+			<form-property name="initConditionOther" type="java.util.Collection" />
+  	    	<form-property name="initialConditionOtherReason" type="java.lang.String" initial=""/> 
+			<form-property name="rejectionReasonList" type="java.lang.String" />
+			<form-property name="rejectionReasonFormErrorsList" type="java.util.Collection" />
+			<form-property name="rejectionReasonLabelErrorsList" type="java.util.Collection" />
+			<form-property name="rejectionReasonMiscList" type="java.util.Collection" />
+  	    	<form-property name="rejectionReasonOtherReason" type="java.lang.String" initial=""/> 
 		</form-bean>
 
 
@@ -334,6 +367,8 @@
 			<form-property name="STNumber" type="java.lang.String" initial=""/>
 			<form-property name="nationalIdNew" type="java.lang.Boolean" initial="Boolean.TRUE"/>
 			<form-property name="nationalId" type="java.lang.String" initial=""/>
+			<form-property name="externalIdNew" type="java.lang.Boolean" initial="Boolean.TRUE"/>
+			<form-property name="externalId" type="java.lang.String" initial=""/>
 			<form-property name="labNo" type="java.lang.String" initial=""/>
 			<form-property name="doctorNew" type="java.lang.Boolean" initial="Boolean.TRUE"/>
 			<form-property name="doctor" type="java.lang.String" initial=""/>
@@ -411,6 +446,11 @@
 			<form-property name="selectedIDs" type="java.lang.String[]" />
 		</form-bean>
 
+		<form-bean name="typeOfSampleSourceMenuForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
+			<form-property name="menuList" type="java.util.List" />
+			<form-property name="selectedIDs" type="java.lang.String[]" />
+		</form-bean>
+
 		<form-bean name="patientTypeMenuForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
 			<form-property name="menuList" type="java.util.List" />
 			<form-property name="selectedIDs" type="java.lang.String[]" />
@@ -444,6 +484,15 @@
 			<form-property name="panel" type="java.lang.String" initial="" />
 			<form-property name="samples" type="java.util.Collection" />
 			<form-property name="panels" type="java.util.Collection" />
+			<form-property name="lastupdated" type="java.sql.Timestamp" initial="" />
+		</form-bean>
+
+		<form-bean name="typeOfSampleSourceForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
+			<form-property name="id" type="java.lang.String" initial="" />
+			<form-property name="sample" type="java.lang.String" initial="" />
+			<form-property name="source" type="java.lang.String" initial="" />
+			<form-property name="samples" type="java.util.Collection" />
+			<form-property name="sources" type="java.util.Collection" />
 			<form-property name="lastupdated" type="java.sql.Timestamp" initial="" />
 		</form-bean>
 
@@ -492,6 +541,7 @@
             <form-property name="descriptionKey" type="java.lang.String" initial="" />
             <form-property name="englishValue" type="java.lang.String" initial="" />
             <form-property name="frenchValue" type="java.lang.String" initial="" />
+            <form-property name="vietnameseValue" type="java.lang.String" initial="" />
 		</form-bean>
 
 		<form-bean name="sampleEntryConfigMenuForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
@@ -506,6 +556,7 @@
 			<form-property name="value" type="java.lang.String" initial="" />
             <form-property name="englishValue" type="java.lang.String" initial="" />
             <form-property name="frenchValue" type="java.lang.String" initial="" />
+            <form-property name="vietnameseValue" type="java.lang.String" initial="" />
 			<form-property name="encrypted" type="boolean" initial="false" />
 			<form-property name="valueType" type="java.lang.String" initial="text" />
 			<form-property name="lastupdated" type="java.sql.Timestamp" initial="" />
@@ -700,7 +751,76 @@
 			<form-property name="accessionNumber" type="java.lang.String" initial="" />
             <form-property name="sampleOrderItems" type="us.mn.state.health.lims.sample.bean.SampleOrderItem" />
             <form-property name="patientProperties" type="us.mn.state.health.lims.patient.action.bean.PatientManagementInfo" />
+			<form-property name="displayOrderItemsInPatientManagement" type="java.lang.String" initial="" />
         </form-bean>
+		
+		<!-- BATCH ENTRY -->
+		<form-bean name="quickEntryForm" 
+				   type="us.mn.state.health.lims.common.action.BaseActionForm" >
+            <form-property name="lastupdated" type="java.sql.Timestamp" initial="" />
+			<form-property name="currentDate" type="java.lang.String" initial=""/> 
+	    	<form-property name="accessionList" type="java.lang.String" initial=""/> 
+	    	<form-property name="receivedDateForDisplay" type="java.lang.String" initial=""/>
+	    	<form-property name="receivedTime" type="java.lang.String" initial=""/>
+  	    	<form-property name="submitterNumber" type="java.lang.String" initial=""/> 
+  	    	<form-property name="projectIdOrName" type="java.lang.String" initial=""/> 
+  	    	<form-property name="projectIdOrNameOther" type="java.lang.String" initial=""/> 
+	    	<form-property name="accessionNumber" type="java.lang.String" initial=""/> 
+ 	    	<form-property name="accessionNumber2" type="java.lang.String" initial=""/>
+	    	<form-property name="typeOfSampleDesc" type="java.lang.String" initial=""/> 
+	    	<form-property name="typeOfSampleId" type="java.lang.String" initial=""/> 
+			<form-property name="sampleTypes" type="java.util.Collection" />
+	    	<form-property name="sourceOfSampleDesc" type="java.lang.String" initial=""/> 
+	    	<form-property name="sourceOfSampleId" type="java.lang.String" initial=""/> 
+			<form-property name="sampleSources" type="java.util.List" />
+			<form-property name="initialSampleConditionList" type="java.util.Collection" />
+			<form-property name="initConditionFormErrorsList" type="java.util.Collection" />
+			<form-property name="initConditionLabelErrorsList" type="java.util.Collection" />
+			<form-property name="initConditionMiscList" type="java.util.Collection" />
+			<form-property name="initConditionOther" type="java.util.Collection" />
+  	    	<form-property name="initialConditionOtherReason" type="java.lang.String" initial=""/> 
+  	    	<form-property name="patientGender" type="java.lang.String" initial=""/> 
+  	    	<form-property name="genderList" type="java.util.Collection" />
+			<form-property name="rejectionReasonList" type="java.lang.String" />
+			<form-property name="rejectionReasonFormErrorsList" type="java.util.Collection" />
+			<form-property name="rejectionReasonLabelErrorsList" type="java.util.Collection" />
+			<form-property name="rejectionReasonMiscList" type="java.util.Collection" />
+  	    	<form-property name="rejectionReasonOtherReason" type="java.lang.String" initial=""/> 
+			<form-property name="sampleXML" type="java.lang.String" initial="" />
+			<form-property name="patientXML" type="java.lang.String" initial="" />
+            <form-property name="testSectionList"  type="java.util.Collection" />
+		</form-bean>
+
+		<!-- SAMPLE LABEL PRINT -->
+  		<form-bean name="sampleLabelPrintForm" 
+			   	   type="us.mn.state.health.lims.common.action.BaseActionForm" >
+            <form-property name="lastupdated" type="java.sql.Timestamp" initial="" />
+	    	<form-property name="labelAccessionNumber" type="java.lang.String" initial=""/> 
+ 	    	<form-property name="labelAccessionNumber2" type="java.lang.String" initial=""/>
+	    	<form-property name="accessionCount" type="java.lang.String" initial=""/> 
+	    	<form-property name="printerName" type="java.lang.String" initial=""/> 
+	    	<form-property name="masterLabels" type="java.lang.String" initial=""/> 
+	    	<form-property name="itemLabels" type="java.lang.String" initial=""/> 
+		</form-bean>
+
+		<!-- SAMPLE LABEL CONFIG MENU -->
+		<form-bean name="SampleLabelConfigurationMenuForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
+			<form-property name="menuList" type="java.util.List" />
+			<form-property name="selectedIDs" type="java.lang.String[]" />
+			<form-property name="siteInfoDomainName" type="java.lang.String" initial="sampleLabelConfig" />
+        </form-bean>
+
+		<!-- SAMPLE LABEL CONFIG FORM -->
+		<form-bean name="SampleLabelConfigurationForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
+			<form-property name="paramName" type="java.lang.String" initial="" />
+			<form-property name="description" type="java.lang.String" initial="" />
+			<form-property name="value" type="java.lang.String" initial="" />
+			<form-property name="valueType" type="java.lang.String" initial="text" />
+			<form-property name="encrypted" type="boolean" initial="false" />
+			<form-property name="lastupdated" type="java.sql.Timestamp" initial="" />
+			<form-property name="siteInfoDomainName" type="java.lang.String" initial="sampleLabelConfig"/>
+			<form-property name="editable" type="java.lang.Boolean" initial="Boolean.TRUE" />
+		</form-bean>
 
         <form-bean name="testRenameEntryForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
             <form-property name="testList" type="java.util.List" />
@@ -1081,7 +1201,80 @@
 
 		<action path="/CancelReferredOutTests" forward="homePageDefinition" />
 
+		<!-- BATCH ENTRY -->
+		<action path="/QuickEntry" 
+				name="quickEntryForm" 
+				type="us.mn.state.health.lims.sample.action.QuickEntryAction" 
+				validate="false">
+			<forward name="success" path="batchEntryDefinition"/> 
+			<forward name="fail" path="homePageDefinition"/> 
+		</action>
+		<action path="/UpdateQuickEntry" 
+        		name="quickEntryForm" 
+        		type="us.mn.state.health.lims.sample.action.QuickEntryUpdateAction" 
+        		validate="false">
+				<!-- AIS : bugzilla 1464 <forward name="success" path="/RequestFormEntryPage.do" redirect="true" /> --> 
+			<forward name="success" path="/QuickEntry.do" redirect="true"/> 
+			<forward name="fail" path="batchEntryDefinition"/> 
+		</action>
+        <action path="/CancelQuickEntry" forward="homePageDefinition">
+		</action>
+		<action path="/QuickEntrySave" name="quickEntryForm" type="us.mn.state.health.lims.sample.action.QuickEntrySaveAction"
+			validate="false">
+			<forward name="success" path="/QuickEntry.do" />
+			<forward name="fail" path="batchEntryDefinition" />
+		</action>
+
+		<!--SAMPLE LABEL PRINT-->       
+        <action path="/SampleLabelPrint" name="sampleLabelPrintForm" type="us.mn.state.health.lims.sample.action.SampleLabelPrintAction" validate="false">
+          	<forward name="success" path="printLabelsDefinition"/> 
+          	<forward name="fail" path="homePageDefinition"/> 
+       	</action>
+
+        <action path="/ProcessSampleLabelPrint" name="sampleLabelPrintForm" type="us.mn.state.health.lims.sample.action.SampleLabelPrintProcessAction" validate="false">
+          	<forward name="success" path="/SampleLabelPrint.do" /> 
+          	<forward name="fail" path="printLabelsDefinition"/> 
+       	</action>
+
+        <action path="/CancelSampleLabelPrint" forward="homePageDefinition">
+       	</action>
+       
 		<!-- admin menu items -->
+		<!--SAMPLE LABEL CONFIG-->       
+		<action path="/SampleLabelConfigurationMenu" name="SampleLabelConfigurationMenuForm" type="us.mn.state.health.lims.siteinformation.action.SiteInformationMenuAction">
+			<forward name="success" path="haitiMasterListsPageDefinition" />
+			<forward name="fail" path="/MasterListsPage.do" />
+		</action>
+
+		<action path="/SampleLabelConfiguration" name="SampleLabelConfigurationForm" type="us.mn.state.health.lims.siteinformation.action.SiteInformationAction" validate="false">
+			<forward name="success" path="siteInformationDefinition" />
+			<forward name="fail" path="masterListsPageDefinition" />
+		</action>
+
+		<action path="/UpdateSampleLabelConfiguration" name="SampleLabelConfigurationForm" type="us.mn.state.health.lims.siteinformation.action.SiteInformationUpdateAction"
+			validate="false"
+		>
+			<forward name="insertSuccess" path="/SampleLabelConfigurationMenu.do" redirect="true" />
+			<forward name="fail" path="/SampleLabelConfiguration.do" />
+		</action>
+
+		<action path="/DeleteSampleLabelConfiguration" name="SampleLabelConfigurationMenuForm" type="us.mn.state.health.lims.siteinformation.action.SiteInformationDeleteAction">
+			<forward name="success" path="/SampleLabelConfiguration.do" />
+			<forward name="fail" path="/SampleLabelConfiguration.do" />
+		</action>
+
+		<action path="/NextPreviousSampleLabelConfiguration" name="SampleLabelConfigurationForm" type="us.mn.state.health.lims.siteinformation.action.SiteInformationNextPreviousAction">
+			<forward name="success" path="/SampleLabelConfiguration.do" redirect="true" />
+			<forward name="fail" path="siteInformationDefinition" />
+		</action>
+
+		<action path="/UpdateNextPreviousSampleLabelConfiguration" name="SampleLabelConfigurationForm" type="us.mn.state.health.lims.siteinformation.action.SiteInformationNextPreviousAction">
+			<forward name="success" path="/SampleLabelConfiguration.do" redirect="true" />
+			<forward name="fail" path="siteInformationDefinition" />
+		</action>
+
+		<action path="/CancelSampleLabelConfiguration" forward="/SampleLabelConfigurationMenu.do" />
+
 		<action path="/TypeOfSampleTestMenu" name="typeOfSampleTestMenuForm"
 			type="us.mn.state.health.lims.typeofsample.action.TypeOfSampleTestMenuAction"
 		>
@@ -1142,6 +1335,38 @@
 		>
 			<forward name="success" path="/TypeOfSamplePanelMenu.do" />
 			<forward name="fail" path="/TypeOfSamplePanelMenu.do" />
+		</action>
+
+		<!--SAMPLE SOURCE CONFIG-->
+		<action path="/TypeOfSampleSourceMenu" name="typeOfSampleSourceMenuForm"
+			type="us.mn.state.health.lims.typeofsample.action.TypeOfSampleSourceMenuAction"
+		>
+			<forward name="success" path="haitiMasterListsPageDefinition" />
+			<forward name="fail" path="/MasterListsPage.do" />
+		</action>
+
+		<action path="/TypeOfSampleSource" name="typeOfSampleSourceForm" type="us.mn.state.health.lims.typeofsample.action.TypeOfSampleSourceAction"
+			validate="false"
+		>
+			<forward name="success" path="typeOfSampleSourceDefinition" />
+			<forward name="fail" path="haitiMasterListsPageDefinition" />
+		</action>
+
+		<action path="/UpdateTypeOfSampleSource" name="typeOfSampleSourceForm"
+			type="us.mn.state.health.lims.typeofsample.action.TypeOfSampleSourceUpdateAction" validate="false"
+		>
+			<forward name="insertSuccess" path="/TypeOfSampleSource.do" redirect="true" />
+			<forward name="fail" path="typeOfSampleSourceDefinition" />
+		</action>
+
+		<action path="/CancelTypeOfSampleSource" forward="/TypeOfSampleSourceMenu.do">
+		</action>
+
+		<action path="/DeleteTypeOfSampleSource" name="typeOfSampleSourceMenuForm"
+			type="us.mn.state.health.lims.typeofsample.action.TypeOfSampleSourceDeleteAction"
+		>
+			<forward name="success" path="/TypeOfSampleSourceMenu.do" />
+			<forward name="fail" path="/TypeOfSampleSourceMenu.do" />
 		</action>
 
 		<action path="/PatientTypeMenu" name="patientTypeMenuForm" type="us.mn.state.health.lims.patienttype.action.PatientTypeMenuAction">

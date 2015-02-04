@@ -1053,24 +1053,6 @@
   </form-bean>
   
   	<!-- QUICK ENTRY -->
-	<form-bean name="quickEntryForm" 
-			   type="us.mn.state.health.lims.common.action.BaseActionForm" >
-		<form-property name="currentDate"			 type="java.lang.String" initial=""/> 
-	    <form-property name="accessionNumber"		 type="java.lang.String" initial=""/> 
- 	    <form-property name="accessionNumber2"		 type="java.lang.String" initial=""/>
-	    <form-property name="receivedDateForDisplay" type="java.lang.String" initial=""/>
-	    <form-property name="typeOfSampleId"		 type="java.lang.String" initial=""/> 
-	    <form-property name="typeOfSampleDesc"		 type="java.lang.String" initial=""/> 
-	    <form-property name="sourceOfSampleId"		 type="java.lang.String" initial=""/> 
-	    <form-property name="sourceOfSampleDesc"	 type="java.lang.String" initial=""/> 
-  	    <form-property name="sourceOther"		     type="java.lang.String" initial=""/> 
-		<form-property name="selectedTestIds"		 type="java.lang.String" />
-	    <form-property name="lastupdated"			 type="java.sql.Timestamp" initial="" />
-		<!-- AIS - bugzilla 1397 -->
-		<form-property name="selectedTestNames"		 type="java.lang.String"  />
-		<!-- AIS - bugzilla 1463 -->		
-		<form-property name="curryear"		 		 type="java.lang.String" initial=""  />
-	</form-bean>
 	<form-bean name="quickEntryAddTestPopupForm" 
 			   type="us.mn.state.health.lims.common.action.BaseActionForm">
 		<form-property name="SelectList" type="java.util.Collection"/>
@@ -1297,18 +1279,6 @@
     <form-property name="selectedIDs" type="java.lang.String[]"/> 
   </form-bean>
 
-
-  <!-- SAMPLE LABEL PRINT -->
-  <form-bean name="sampleLabelPrintForm" 
-			   type="us.mn.state.health.lims.common.action.BaseActionForm" >
-	    <form-property name="numberOfSamples"		 type="java.lang.String" initial=""/> 
-	    <form-property name="lastupdated"			 type="java.sql.Timestamp" initial="" />
-	    <form-property name="accessionNumbersPrinted" type="java.lang.String" initial="" />
-   	    <form-property name="accessionNumberPrinted" type="java.lang.String" initial="" />
-	    <form-property name="accessionNumbersGenerated" type="java.lang.String" initial="" />
-   	    <form-property name="accessionNumberGenerated" type="java.lang.String" initial="" />
-	</form-bean>
-  
    <form-bean name="scriptletForm" type="us.mn.state.health.lims.common.action.BaseActionForm">
     <form-property name="id" type="java.lang.String" initial=""/> 
     <form-property name="scriptletName" type="java.lang.String" initial=""/> 
@@ -3325,31 +3295,6 @@
           <forward name="fail" path="qaEventsEntryLineListingDefinition"/>
        </action>
         
-<!-- QUICK ENTRY -->
-		<action path="/QuickEntry" 
-				name="quickEntryForm" 
-				type="us.mn.state.health.lims.sample.action.QuickEntryAction" 
-				validate="false">
-			<forward name="success" path="quickEntryDefinition"/> 
-			<forward name="fail" path="requestFormEntryPageDefinition"/> 
-		</action>
-		<action path="/UpdateQuickEntry" 
-        		name="quickEntryForm" 
-        		type="us.mn.state.health.lims.sample.action.QuickEntryUpdateAction" 
-        		validate="false">
-				<!-- AIS : bugzilla 1464 <forward name="success" path="/RequestFormEntryPage.do" redirect="true" /> --> 
-			<forward name="success" path="/QuickEntry.do" redirect="true"/> 
-			<forward name="fail" path="quickEntryDefinition"/> 
-		</action>
-        <action path="/CancelQuickEntry" 
-        		name="quickEntryForm" 
-        		type="us.mn.state.health.lims.sample.action.QuickEntryCancelAction" 
-        		validate="false">
-			<forward name="success" path="/RequestFormEntryPage.do"/> 
-			<forward name="close" path="/RequestFormEntryPage.do"/>  
-			<forward name="fail" path="/QuickEntry.do"/>
-		</action>
-		
 <!-- bugzilla 2528 -->
        <action path="/PopulateNewbornTestQuickEntry" name="quickEntryForm" type="us.mn.state.health.lims.sample.action.QuickEntryPopulateNewbornTestAction" validate="false">
 			<forward name="success" path="quickEntryDefinition"/> 
@@ -3678,23 +3623,6 @@
           <forward name="success" path="masterListsPageDefinition"/> 
           <forward name="fail" path="masterListsPageDefinition"/>
           <forward name="close" path="masterListsPageDefinition"/> 
-       </action>
-       
-<!--SAMPLE LABEL PRINT-->       
-       <action path="/SampleLabelPrint" name="sampleLabelPrintForm" type="us.mn.state.health.lims.sample.action.SampleLabelPrintAction" validate="false">
-          <forward name="success" path="sampleLabelPrintDefinition"/> 
-          <forward name="fail" path="requestFormEntryPageDefinition"/> 
-       </action>
-
-        <action path="/ProcessSampleLabelPrint" name="sampleLabelPrintForm" type="us.mn.state.health.lims.sample.action.SampleLabelPrintProcessAction" validate="false">
-          <forward name="success" path="sampleLabelPrintDefinition" /> 
-          <forward name="fail" path="sampleLabelPrintDefinition"/> 
-       </action>
-
-        <action path="/CancelSampleLabelPrint" name="sampleLabelPrintForm" type="us.mn.state.health.lims.sample.action.SampleLabelPrintCancelAction" validate="false">
-          <forward name="success" path="/RequestFormEntryPage.do"/> 
-          <forward name="close" path="/RequestFormEntryPage.do"/>  
-          <forward name="fail" path="/SampleLabelPrint.do"/>
        </action>
        
 <!--AIS : SAMPLE TRACKING --> 

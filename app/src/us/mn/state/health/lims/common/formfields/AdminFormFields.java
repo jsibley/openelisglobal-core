@@ -59,6 +59,8 @@ public class AdminFormFields {
 		TestTrailerMenu,
 		TypeOfSampleMenu,
 		TypeOfSamplePanelMenu,
+		TypeOfSampleSourceMenu,
+		SampleLabelMenu,
 		TypeOfSampleTestMenu,
 		TypeOfTestResultMenu,
 		UnitOfMeasureMenu,

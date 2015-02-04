@@ -36,7 +36,7 @@ public class AjaxXMLServlet extends AjaxServlet {
 
 		if (!StringUtil.isNullorNill(field)) {
 
-			response.setContentType("text/xml");
+			response.setContentType("text/xml; charset=UTF-8");
 			response.setHeader("Cache-Control", "no-cache");
 			response.getWriter().write("<fieldmessage>");
 			response.getWriter().write("<formfield>" + field + "</formfield>");

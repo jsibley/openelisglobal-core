@@ -52,4 +52,5 @@ public interface QaEventDAO extends BaseDAO {
 	
 	public Integer getTotalQaEventCount() throws LIMSRuntimeException; 
 
+	public List<QaEvent> getQaEventsByTypeAndCategory(String type, String category) throws LIMSRuntimeException;
 }

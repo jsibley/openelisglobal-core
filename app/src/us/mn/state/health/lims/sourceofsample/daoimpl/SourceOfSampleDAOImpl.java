@@ -16,10 +16,13 @@
 package us.mn.state.health.lims.sourceofsample.daoimpl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.hibernate.Query;
 
 import us.mn.state.health.lims.audittrail.dao.AuditTrailDAO;
 import us.mn.state.health.lims.audittrail.daoimpl.AuditTrailDAOImpl;
@@ -31,14 +34,19 @@ import us.mn.state.health.lims.common.util.StringUtil;
 import us.mn.state.health.lims.common.util.SystemConfiguration;
 import us.mn.state.health.lims.common.log.LogEvent;
 import us.mn.state.health.lims.hibernate.HibernateUtil;
+import us.mn.state.health.lims.panel.valueholder.Panel;
 import us.mn.state.health.lims.sourceofsample.dao.SourceOfSampleDAO;
 import us.mn.state.health.lims.sourceofsample.valueholder.SourceOfSample;
+import us.mn.state.health.lims.typeofsample.dao.TypeOfSampleDAO.SampleDomain;
+import us.mn.state.health.lims.typeofsample.valueholder.TypeOfSample;
 
 /**
  * @author diane benz
  */
-public class SourceOfSampleDAOImpl extends BaseDAOImpl implements
-		SourceOfSampleDAO {
+public class SourceOfSampleDAOImpl extends BaseDAOImpl implements SourceOfSampleDAO {
+
+	private static Map<String, String> ID_NAME_MAP = null;
+	private static Map<String, String> ID_DOMAIN_MAP = null;
 
 	public void deleteData(List sourceOfSamples) throws LIMSRuntimeException {
 		// add to audit trail
@@ -79,6 +87,8 @@ public class SourceOfSampleDAOImpl extends BaseDAOImpl implements
 			throw new LIMSRuntimeException(
 					"Error in SourceOfSample deleteData()", e);
 		}
+		
+		clearIDMaps();
 	}
 
 	public boolean insertData(SourceOfSample sourceOfSample)
@@ -112,6 +122,7 @@ public class SourceOfSampleDAOImpl extends BaseDAOImpl implements
 					"Error in SourceOfSample insertData()", e);
 		}
 
+		clearIDMaps();
 		return true;
 	}
 
@@ -161,6 +172,8 @@ public class SourceOfSampleDAOImpl extends BaseDAOImpl implements
 			throw new LIMSRuntimeException(
 					"Error in SourceOfSample updateData()", e);
 		}
+		
+		clearIDMaps();
 	}
 
 	public void getData(SourceOfSample sourceOfSample)
@@ -186,7 +199,7 @@ public class SourceOfSampleDAOImpl extends BaseDAOImpl implements
 	public List getAllSourceOfSamples() throws LIMSRuntimeException {
 		List list = new Vector();
 		try {
-			String sql = "from SourceOfSample";
+			String sql = "from SourceOfSample s order by s.domain, s.description";
 			org.hibernate.Query query = HibernateUtil.getSession().createQuery(
 					sql);
 			list = query.list();
@@ -279,6 +292,52 @@ public class SourceOfSampleDAOImpl extends BaseDAOImpl implements
 					"Error in SourceOfSample getSources(String filter)", e);
 		}
 		return list;
+	}
+
+	public List getSourcesForDomain(SampleDomain domain) throws LIMSRuntimeException {
+		List list = new Vector();
+		String key = getKeyForDomain(domain);
+
+		try {
+
+			String sql = "from SourceOfSample t where t.domain = :domainKey order by upper(t.description)";
+
+			org.hibernate.Query query = HibernateUtil.getSession().createQuery(sql);
+
+			query.setParameter("domainKey", key);
+
+			list = query.list();
+			HibernateUtil.getSession().flush();
+			HibernateUtil.getSession().clear();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new LIMSRuntimeException("Error in SourceOfSample getSourcesForDomain(SampleDomain domain)", e);
+		}
+		return list;
+	}
+
+	private String getKeyForDomain(SampleDomain domain) {
+		String domainKey = "H";
+		switch (domain) {
+		case ANIMAL: {
+			domainKey = "A";
+			break;
+		}
+		case ENVIRONMENTAL: {
+			domainKey = "E";
+			break;
+		}
+		case HUMAN: {
+			domainKey = "H";
+			break;
+		}
+		default: {
+			domainKey = "H";
+		}
+
+		}
+
+		return domainKey;
 	}
 
 	public List getNextSourceOfSampleRecord(String id)
@@ -460,4 +519,54 @@ public class SourceOfSampleDAOImpl extends BaseDAOImpl implements
 					"Error in duplicateSourceOfSampleExists()", e);
 		}
 	}
+
+	public String getDescriptionForSourceId(String sourceId) {
+		if( ID_NAME_MAP == null){
+			loadMaps();
+		}
+		
+		return ID_NAME_MAP != null ? ID_NAME_MAP.get(sourceId) : sourceId;
+	}
+
+	public String getDomainForSourceId(String id) {
+		if( ID_DOMAIN_MAP == null){
+			loadMaps();
+		}
+		
+		return ID_DOMAIN_MAP != null ? ID_DOMAIN_MAP.get(id) : id;
+	}
+	
+	private void loadMaps(){
+		List allSources = getAllSourceOfSamples();
+		
+		if( allSources != null){
+			ID_NAME_MAP = new HashMap<String, String>();
+			ID_DOMAIN_MAP = new HashMap<String, String>();
+			
+			for( Object sourceObj : allSources){
+				SourceOfSample source = (SourceOfSample)sourceObj;
+				
+				ID_NAME_MAP.put( source.getId(), source.getDescription());
+				ID_DOMAIN_MAP.put( source.getId(), source.getDomain());
+			}
+		}
+	}
+	
+	private void clearIDMaps(){
+		ID_NAME_MAP = null;
+		ID_DOMAIN_MAP = null;
+	}
+
+	public SourceOfSample getSourceOfSampleById(String sourceOfSampleId) throws LIMSRuntimeException {
+		try {
+			SourceOfSample sos = (SourceOfSample) HibernateUtil.getSession().get( SourceOfSample.class, sourceOfSampleId);
+			closeSession();
+			return sos;
+		} catch (Exception e) {
+			handleException(e, "getSourceOfSampleById");
+		}
+
+		return null;
+	}
+
 }

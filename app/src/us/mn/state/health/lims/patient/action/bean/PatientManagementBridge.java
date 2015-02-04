@@ -21,6 +21,7 @@ import us.mn.state.health.lims.address.daoimpl.AddressPartDAOImpl;
 import us.mn.state.health.lims.address.valueholder.AddressPart;
 import us.mn.state.health.lims.common.services.PatientService;
 import us.mn.state.health.lims.common.util.DateUtil;
+import us.mn.state.health.lims.patient.util.PatientUtil;
 import us.mn.state.health.lims.patient.valueholder.Patient;
 
 import java.util.List;
@@ -33,6 +34,8 @@ public class PatientManagementBridge{
     public static String ADDRESS_PART_VILLAGE_ID;
     public static String ADDRESS_PART_COMMUNE_ID;
     public static String ADDRESS_PART_DEPT_ID;
+    public static String ADDRESS_PART_WARD_ID;
+    public static String ADDRESS_PART_DISTRICT_ID;
 
     static{
         AddressPartDAO addressPartDAO = new AddressPartDAOImpl();
@@ -45,6 +48,10 @@ public class PatientManagementBridge{
                 ADDRESS_PART_COMMUNE_ID = addressPart.getId();
             }else if( "village".equals(addressPart.getPartName())){
                 ADDRESS_PART_VILLAGE_ID = addressPart.getId();
+            }else if( "ward".equals(addressPart.getPartName())){
+                ADDRESS_PART_WARD_ID = addressPart.getId();
+            }else if( "district".equals(addressPart.getPartName())){
+                ADDRESS_PART_DISTRICT_ID = addressPart.getId();
             }
         }
     }
@@ -53,12 +60,14 @@ public class PatientManagementBridge{
         PatientManagementInfo info = new PatientManagementInfo();
         info.setReadOnly( readOnly );
 
-        if( patient != null){
+        if( patient != null && !patient.getPerson().getId().equals(PatientUtil.getUnknownPerson().getId())){
             PatientService patientService = new PatientService( patient );
             Map<String, String> addressComponents = patientService.getAddressComponents();
             info.setFirstName( patientService.getFirstName() );
             info.setLastName( patientService.getLastName() );
             info.setAddressDepartment( addressComponents.get( PatientService.ADDRESS_DEPT ) );
+            info.setAddressWard( addressComponents.get( PatientService.ADDRESS_WARD ) );
+            info.setAddressDistrict( addressComponents.get( PatientService.ADDRESS_DISTRICT ) );
             info.setCommune( addressComponents.get( PatientService.ADDRESS_COMMUNE ) );
             info.setCity( addressComponents.get( PatientService.ADDRESS_CITY ) );
             info.setStreetAddress( addressComponents.get( PatientService.ADDRESS_STREET ) );

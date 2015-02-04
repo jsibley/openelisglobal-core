@@ -685,7 +685,7 @@ public class ResultsValidationUtility {
 		testSection.setTestSectionName(testSectionName);
 		testSection = testSectionDAO.getTestSectionByName(testSection);
 
-		return testSection.getId();
+		return testSection == null ? "0" : testSection.getId();
 	}
 
 	protected final String getTestId(String testName) {

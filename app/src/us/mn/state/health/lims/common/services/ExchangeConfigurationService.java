@@ -53,9 +53,9 @@ public class ExchangeConfigurationService {
 	}
 
 	public enum ExchangeType {
-		RESULT_REPORT("Result Reporting", "resultReport", true, RESULT_REPORT_TYPE_ID), 
-		MALARIA_SURVEILLANCE("Malaria Surveillance", "malariaSurvaeillance", false, null), 
-		MALARIA_CASE("Malaria Case Report", "malariaCase", true,	MALARIA_CASE_TYPE_ID);
+		RESULT_REPORT(StringUtil.getMessageForKey( "exchange.result.reporting.title" ), "resultReport", true, RESULT_REPORT_TYPE_ID), 
+		MALARIA_SURVEILLANCE(StringUtil.getMessageForKey( "exchange.malaria.surveillance.title" ), "malariaSurvaeillance", false, null), 
+		MALARIA_CASE(StringUtil.getMessageForKey( "exchange.malaria.case.reporting.title" ), "malariaCase", true,	MALARIA_CASE_TYPE_ID);
 
 		private String title;
 		private boolean showbacklog = false;

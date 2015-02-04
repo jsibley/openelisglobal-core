@@ -240,6 +240,8 @@ public class TestService implements LocaleChangeListener{
 
         if( LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.FRENCH.getRepresentation() )){
             return localization.getFrench();
+        } else if ( LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.VIETNAMESE.getRepresentation() )) {
+            return localization.getVietnamese();
         }else{
             return localization.getEnglish();
         }
@@ -273,6 +275,8 @@ public class TestService implements LocaleChangeListener{
 
         if( LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.FRENCH.getRepresentation() )){
             return localization.getFrench();
+        } else if ( LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.VIETNAMESE.getRepresentation() )) {
+            return localization.getVietnamese();
         }else{
             return localization.getEnglish();
         }
@@ -291,6 +295,8 @@ public class TestService implements LocaleChangeListener{
 
         if( LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.FRENCH.getRepresentation() )){
             return localization.getFrench() + sampleName;
+        } else if ( LANGUAGE_LOCALE.equals( ConfigurationProperties.LOCALE.VIETNAMESE.getRepresentation() )) {
+            return localization.getVietnamese() + sampleName;
         }else{
             return localization.getEnglish()  + sampleName;
         }

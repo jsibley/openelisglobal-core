@@ -355,9 +355,9 @@ function processDateCallbackEvaluation(xhr) {
 
     if( !isValid ){
         if( message == 'invalid_value_to_large' ){
-            alert( '<bean:message key="error.date.inFuture"/>' );
+            alert( "<bean:message key="error.date.inFuture"/>" );
         }else if( message == 'invalid_value_to_small' ){
-            alert( '<bean:message key="error.date.inPast"/>' );
+            alert( "<bean:message key="error.date.inPast"/>" );
         }else if( message == "invalid"){
             alert( givenDate + " " + "<%=StringUtil.getMessageForKey("errors.date", "" )%>");
         }
@@ -516,7 +516,7 @@ function updateShadowResult(source, index){
 	<% } %>
 
 	&nbsp;
-	<bean:write name="<%=formName%>" property="paging.currentPage"/> of
+	<bean:write name="<%=formName%>" property="paging.currentPage"/> <bean:message key="list.of"/>
 	<bean:write name="<%=formName%>" property="paging.totalPages"/>
 	<div class='textcontent' style="float: right" >
 	<span style="visibility: hidden" id="searchNotFound"><em><%= StringUtil.getMessageForKey("search.term.notFound") %></em></span>
@@ -578,7 +578,7 @@ function updateShadowResult(source, index){
 			<bean:message key="result.technician"/>
 			<span class="requiredlabel">*</span><br/>
 			<% if(autofillTechBox){ %>
-			Autofill:<input type="text" size='10em' onchange="autofill( this )">
+			<bean:message key="result.autofill"/>:<input type="text" size='10em' onchange="autofill( this )">
 			<% } %>
 		</th>
 		<% }%>
@@ -1061,7 +1061,7 @@ function updateShadowResult(source, index){
 	<% } %>
 
 	&nbsp;
-	<bean:write name="<%=formName%>" property="paging.currentPage"/> of
+	<bean:write name="<%=formName%>" property="paging.currentPage"/> <bean:message key="list.of"/>
 	<bean:write name="<%=formName%>" property="paging.totalPages"/>
 </logic:notEqual>
 

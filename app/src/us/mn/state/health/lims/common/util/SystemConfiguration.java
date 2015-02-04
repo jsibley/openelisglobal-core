@@ -960,6 +960,9 @@ public class SystemConfiguration {
 		pattern = pattern.replaceFirst("01", "MM");
 		pattern = pattern.replaceFirst("02", "DD");
 		pattern = pattern.replaceFirst("00", "YYYY");
+		// these next two are needed to support 'en-US' locale which returns a pattern of 'M/d/yy' (non zero-padded single digits for month and day)
+		pattern = pattern.replaceFirst("1", "MM");
+		pattern = pattern.replaceFirst("2", "DD");
 		return pattern;
 	}
 

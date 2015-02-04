@@ -4,6 +4,7 @@
 			     us.mn.state.health.lims.common.formfields.FormFields.Field,
 			     us.mn.state.health.lims.common.provider.validation.AccessionNumberValidatorFactory,
 			     us.mn.state.health.lims.common.provider.validation.IAccessionNumberValidator,
+                 us.mn.state.health.lims.common.util.ConfigurationProperties,
 			     us.mn.state.health.lims.common.util.ConfigurationProperties.Property" %>
 <%@ page import="us.mn.state.health.lims.common.util.*" %>
 
@@ -13,7 +14,6 @@
 <%@ taglib uri="/tags/struts-logic"		prefix="logic" %>
 <%@ taglib uri="/tags/labdev-view"		prefix="app" %>
 <%@ taglib uri="/tags/sourceforge-ajax" prefix="ajax"%>
-<%@ taglib prefix="nested" uri="http://jakarta.apache.org/struts/tags-nested" %>
 
 <bean:define id="formName"	value='<%=(String) request.getAttribute(IActionConstants.FORM_NAME)%>' />
 <bean:define id="localDBOnly" value='<%=Boolean.toString(ConfigurationProperties.getInstance().getPropertyValueLowerCase(Property.UseExternalPatientInfo).equals("false"))%>' />
@@ -26,6 +26,8 @@
 	boolean supportSubjectNumber = true;
 	boolean supportNationalID = true;
 	boolean supportLabNumber = false;
+	boolean useSingleNameField = false;
+	boolean supportExternalID = false;
 	String basePath = "";
  %>
 
@@ -38,6 +40,8 @@
  	accessionNumberValidator = new AccessionNumberValidatorFactory().getValidator();
  	String path = request.getContextPath();
  	basePath = request.getScheme() + "://" + request.getServerName() + ":"	+ request.getServerPort() + path + "/";
+	useSingleNameField = FormFields.getInstance().useField(Field.SINGLE_NAME_FIELD);
+ 	supportExternalID = FormFields.getInstance().useField(Field.EXTERNAL_ID);
  %>
 
 <script type="text/javascript" src="<%=basePath%>scripts/ajaxCalls.js?ver=<%= Versioning.getBuildNumber() %>" ></script>
@@ -53,6 +57,8 @@ var patientInfoHash = [];
 var patientChangeListeners = [];
 var localDB = '<%=localDBOnly%>' == "true";
 var newSearchInfo = false;
+var useSingleNameField = <%= useSingleNameField %>;
+var supportExternalID = <%= supportExternalID %>;
 
 function searchPatients()
 {
@@ -64,14 +70,21 @@ function searchPatients()
     var STNumber = "";
     var subjectNumber = "";
     var nationalID = "";
+    var externalID = "";
     var labNumber = "";
+    var nameMinLength = useSingleNameField ? ((criteria == "1" && value.length > 2) || criteria != "1" ? true : false) : true;
 
 
 	newSearchInfo = false;
     $jq("#resultsDiv").hide();
     $jq("#searchLabNumber").val('');
     if( criteria == 1){
-        firstName =  value.trim();
+    	if (!nameMinLength) {
+    		alert("<%=StringUtil.getMessageForKey("patient.search.name.too.short")%>");
+    		return;
+    	} else {
+        	firstName =  value.trim();
+    	}
     }else if(criteria == 2){
         lastName = value.trim();
     }else if(criteria == 3){
@@ -82,12 +95,13 @@ function searchPatients()
         STNumber = value.trim();
         subjectNumber = value.trim();
         nationalID = value.trim();
+        externalID = value.trim();
     }else if(criteria == 5){
         labNumber = value;
         $jq("#searchLabNumber").val(value);
     }
 
-	patientSearch(lastName, firstName, STNumber, subjectNumber, nationalID, labNumber, "", false, processSearchSuccess);
+	patientSearch(lastName, firstName, STNumber, subjectNumber, nationalID, externalID, labNumber, "", false, processSearchSuccess);
 
 }
 
@@ -152,12 +166,13 @@ function addPatientToSearch(table, result ){
 	var stNumber = getValueFromXmlElement( patient, "ST");
 	var subjectNumber = getValueFromXmlElement( patient, "subjectNumber");
 	var nationalID = getValueFromXmlElement( patient, "nationalID");
+	var externalID = getValueFromXmlElement( patient, "externalID");
 	var mother = getValueFromXmlElement( patient, "mother");
 	var pk = getValueFromXmlElement( result, "id");
 	var dataSourceName = getValueFromXmlElement( result, "dataSourceName");
 
-	var row = createRow( table, firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, mother, pk, dataSourceName );
-	addToPatientInfo( firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, mother, pk );
+	var row = createRow( table, firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, externalID, mother, pk, dataSourceName );
+	addToPatientInfo( firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, externalID, mother, pk );
 
 	if( row == 1 ){
 		patientSelectID = pk;
@@ -172,7 +187,7 @@ function getValueFromXmlElement( parent, tag ){
 	return element ? element.firstChild.nodeValue : "";
 }
 
-function createRow(table, firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, mother, pk,  dataSourceName){
+function createRow(table, firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, externalID, mother, pk,  dataSourceName){
 
 		var row = table.rows.length;
 
@@ -183,28 +198,47 @@ function createRow(table, firstName, lastName, gender, DOB, stNumber, subjectNum
 		var cellCounter = -1;
 
 		var selectionCell = newRow.insertCell(++cellCounter);
-		if( !localDB){
-			var dataSourceCell = newRow.insertCell(++cellCounter);
-			dataSourceCell.innerHTML = nonNullString( dataSourceName );
-		}
-		var lastNameCell = newRow.insertCell(++cellCounter);
-		var firstNameCell = newRow.insertCell(++cellCounter);
-		var genderCell = newRow.insertCell(++cellCounter);
-		var dobCell = newRow.insertCell(++cellCounter);
-		var motherCell = supportMothersName ? newRow.insertCell(++cellCounter) : null;
-		var stCell = supportSTNumber ? newRow.insertCell(++cellCounter) : null;
-		var subjectNumberCell = supportSubjectNumber ? newRow.insertCell(++cellCounter) : null;
-		var nationalCell = supportNationalID ? newRow.insertCell(++cellCounter) : null;
 		selectionCell.innerHTML = getSelectionHtml( row, pk );
-		lastNameCell.innerHTML = nonNullString( lastName );
-		firstNameCell.innerHTML = nonNullString( firstName );
-		genderCell.innerHTML = nonNullString( gender );
-		if( supportSTNumber){stCell.innerHTML = nonNullString( stNumber );}
-		if( supportSubjectNumber){subjectNumberCell.innerHTML = nonNullString( subjectNumber );}
-		if( supportNationalID){nationalCell.innerHTML = nonNullString( nationalID );}
 
-		dobCell.innerHTML = nonNullString( DOB );
-		if(supportMothersName){motherCell.innerHTML = nonNullString( mother );}
+		if (lastName == "UNKNOWN_") {
+			var spanCell = newRow.insertCell(++cellCounter);
+			spanCell.setAttribute("colspan", "100%");
+			spanCell.innerHTML = '<%=StringUtil.getMessageForKey("label.patient.unknown")%>';
+		} else if (nonNullString(lastName) == "" && nonNullString(firstName) == "" &&
+				   nonNullString(gender) == "" && nonNullString(DOB) == "" &&
+				   nonNullString(stNumber) == "" && nonNullString(subjectNumber) == "" &&
+				   nonNullString(nationalID) == "" && nonNullString(externalID) == "" &&
+				   nonNullString(mother) == "") {
+			var spanCell = newRow.insertCell(++cellCounter);
+			spanCell.setAttribute("colspan", "100%");
+			spanCell.innerHTML = '<%=StringUtil.getMessageForKey("label.patient.no.displayable.data")%>';			
+		} else {
+			if( !localDB){
+				var dataSourceCell = newRow.insertCell(++cellCounter);
+				dataSourceCell.innerHTML = nonNullString( dataSourceName );
+			}
+			if (!useSingleNameField)
+				var lastNameCell = newRow.insertCell(++cellCounter);
+			var firstNameCell = newRow.insertCell(++cellCounter);
+			var genderCell = newRow.insertCell(++cellCounter);
+			var dobCell = newRow.insertCell(++cellCounter);
+			var motherCell = supportMothersName ? newRow.insertCell(++cellCounter) : null;
+			var stCell = supportSTNumber ? newRow.insertCell(++cellCounter) : null;
+			var subjectNumberCell = supportSubjectNumber ? newRow.insertCell(++cellCounter) : null;
+			var externalCell = supportExternalID ? newRow.insertCell(++cellCounter) : null;
+			var nationalCell = supportNationalID ? newRow.insertCell(++cellCounter) : null;
+			if (!useSingleNameField)
+				lastNameCell.innerHTML = nonNullString( lastName );
+			firstNameCell.innerHTML = nonNullString( firstName );
+			genderCell.innerHTML = nonNullString( gender );
+			if( supportSTNumber){stCell.innerHTML = nonNullString( stNumber );}
+			if( supportSubjectNumber){subjectNumberCell.innerHTML = nonNullString( subjectNumber );}
+			if( supportExternalID){externalCell.innerHTML = nonNullString( externalID );}
+			if( supportNationalID){nationalCell.innerHTML = nonNullString( nationalID );}
+
+			dobCell.innerHTML = nonNullString( DOB );
+			if(supportMothersName){motherCell.innerHTML = nonNullString( mother );}
+		}
 
 		return row;
 }
@@ -217,7 +251,7 @@ function /*String*/ nonNullString( target ){
 	return target == "null" ? "" : target;
 }
 
-function addToPatientInfo( firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, mother, pk ){
+function addToPatientInfo( firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, externalID, mother, pk ){
 	var info = [];
 	info["first"] = nonNullString( firstName );
 	info["last"] = nonNullString( lastName );
@@ -225,6 +259,7 @@ function addToPatientInfo( firstName, lastName, gender, DOB, stNumber, subjectNu
 	info["DOB"] = nonNullString( DOB );
 	info["ST"] = nonNullString( stNumber );
 	info["subjectNumber"] = nonNullString( subjectNumber );
+	info["external"] = nonNullString( externalID );
 	info["national"] = nonNullString( nationalID );
 	info["mother"] = nonNullString( mother );
 
@@ -240,12 +275,12 @@ function selectPatient( patientID ){
 		var info = patientInfoHash[patientID];
 
 		for(i = 0; i < patientChangeListeners.length; i++){
-			patientChangeListeners[i](info["first"],info["last"],info["gender"],info["DOB"],info["ST"],info["subjectNumber"],info["national"],info["mother"], patientID);
+			patientChangeListeners[i](info["first"],info["last"],info["gender"],info["DOB"],info["ST"],info["subjectNumber"],info["national"],info["external"],info["mother"], patientID);
 		}
 
 	}else{
 		for(i = 0; i < patientChangeListeners.length; i++){
-			patientChangeListeners[i]("","","","","","","","", null);
+			patientChangeListeners[i]("","","","","","","","","", null);
 		}
 	}
 }
@@ -274,7 +309,8 @@ function enableSearchButton(eventCode){
     var valueElem = $jq("#searchValue");
     var criteriaElem  = $jq('#searchCriteria');
     var searchButton = $jq("#searchButton");
-    if( valueElem.val() && criteriaElem.val() != "0" && valueElem.val() != '<%=StringUtil.getMessageForKey("label.select.search.here")%>'){
+    var nameMinLength = useSingleNameField ? ((criteriaElem.val() == "1" && valueElem.val().length > 2) || criteriaElem.val() != "1" ? true : false) : true;
+    if( valueElem.val() && criteriaElem.val() != "0" && valueElem.val() != '<%=StringUtil.getMessageForKey("label.select.search.here")%>' && nameMinLength){
         searchButton.removeAttr("disabled");
         if( eventCode == 13 ){
             searchButton.click();
@@ -376,10 +412,10 @@ function setCaretPosition(ctrl, pos){
            onclick="searchPatients()"
            disabled="disabled" >
 
-	<div id="noPatientFound" align="center" style="display: none" >
+	<div id="noPatientFound" align="center" style="clear: both; display: none" >
 		<h1><bean:message key="patient.search.not.found"/></h1>
 	</div>
-	<div id="searchResultsDiv" class="colorFill" style="display: none;" >
+	<div id="searchResultsDiv" class="colorFill" style="clear: both; display: none;" >
 		<% if( localDBOnly.equals("false")){ %>
 		<table id="searchResultTable" style="width:90%">
 			<tr>
@@ -392,11 +428,17 @@ function setCaretPosition(ctrl, pos){
 			<tr>
 				<th width="2%"></th>
 		<% } %>
+				<% if (!useSingleNameField) { %>
 				<th width="18%">
 					<bean:message key="patient.epiLastName"/>
 				</th>
+				<% } %>
 				<th width="15%">
+				<% if (useSingleNameField) { %>
+					<bean:message key="patient.epiFullName"/>
+				<% } else { %>
 					<bean:message key="patient.epiFirstName"/>
+				<% } %>
 				</th>
 				<th width="5%">
 					<bean:message key="patient.gender"/>
@@ -408,9 +450,15 @@ function setCaretPosition(ctrl, pos){
 				<th width="20%">
 					<bean:message key="patient.mother.name"/>
 				</th>
-				<% } if(supportSTNumber){ %>
+				<% } %>
+				<% if(supportSTNumber){ %>
 				<th width="12%">
 					<bean:message key="patient.ST.number"/>
+				</th>
+				<% } %>
+				<% if(supportExternalID){ %>
+				<th width="12%">
+					<bean:message key="patient.externalId"/>
 				</th>
 				<% } %>
 				<% if(supportSubjectNumber){ %>

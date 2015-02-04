@@ -5,7 +5,7 @@
 <%@ page import="us.mn.state.health.lims.common.util.ConfigurationProperties.Property" %>
 
 
-Build number: <%= Versioning.getBuildNumber() %>&nbsp;&nbsp;&nbsp;&nbsp;<bean:message key="ellis.configuration" />:&nbsp;
+<bean:message key="admin.build.number" />: <%= Versioning.getBuildNumber() %>&nbsp;&nbsp;&nbsp;&nbsp;<bean:message key="ellis.configuration" />:&nbsp;
 <%=ConfigurationProperties.getInstance().getPropertyValue( Property.configurationName )%><br/>
 <table width="100%">
 <tr>

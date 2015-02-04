@@ -45,6 +45,13 @@ public class ObservationHistoryService{
 		REFERRING_SITE("referringSite"),
 		REFERRERS_PATIENT_ID("referrersPatientId"),
         BILLING_REFERENCE_NUMBER("billingRefNumber"),
+		ORDER_URGENCY("orderUrgency"),
+		PATIENT_DIAGNOSIS("patientDiagnosis"),
+		PATIENT_BED_NUMBER("patientBedNumber"),
+		PATIENT_ROOM_NUMBER("patientRoomNumber"),
+		PATIENT_CLINICAL_DEPT_ID("patientClinicalDeptId"),
+		PATIENT_AGE_VALUE("patientAgeValue"),
+		PATIENT_AGE_UNITS("patientAgeUnits"),
         TEST_LOCATION_CODE("testLocationCode"),
         TEST_LOCATION_CODE_OTHER("testLocationCodeOther"),
         PROGRAM("program");

@@ -49,7 +49,22 @@ public class SampleOrderItem implements Serializable{
     private String facilityFax;
     private String paymentOptionSelection;
     private Collection paymentOptions;
+    private String clinicalDeptOptionSelection;
+    private Collection clinicalDeptOptions;
     private String otherLocationCode;
+    private String submitterNumber; 
+    private String projectIdOrName; 
+    private String projectIdOrNameOther;
+    private String project2IdOrName; 
+    private String project2IdOrNameOther; 
+    private String orderUrgency;
+    private String patientDiagnosis;
+    private String patientBedNumber;
+    private String patientRoomNumber;
+    private String patientClinicalDept;
+    private String patientClinicalDeptId;
+    private String patientAgeValue;
+    private String patientAgeUnits;
     private Boolean modified = false;
     private String sampleId;
     private boolean readOnly = false;
@@ -275,6 +290,22 @@ public class SampleOrderItem implements Serializable{
         this.paymentOptions = paymentOptions;
     }
 
+    public String getClinicalDeptOptionSelection(){
+        return clinicalDeptOptionSelection;
+    }
+
+    public void setClinicalDeptOptionSelection( String clinicalDeptOptionSelection ){
+        this.clinicalDeptOptionSelection = clinicalDeptOptionSelection;
+    }
+
+    public Collection getClinicalDeptOptions(){
+        return clinicalDeptOptions;
+    }
+
+    public void setClinicalDeptOptions( Collection clinicalDeptOptions ){
+        this.clinicalDeptOptions = clinicalDeptOptions;
+    }
+
     public String getOtherLocationCode(){
         return otherLocationCode;
     }
@@ -313,6 +344,110 @@ public class SampleOrderItem implements Serializable{
 
     public void setBillingReferenceNumber( String billingReferenceNumber ){
         this.billingReferenceNumber = billingReferenceNumber;
+    }
+
+    public String getSubmitterNumber(){
+        return submitterNumber;
+    }
+
+    public void setSubmitterNumber( String submitterNumber ){
+        this.submitterNumber = submitterNumber;
+    }
+
+    public String getProjectIdOrName(){
+        return projectIdOrName;
+    }
+
+    public void setProjectIdOrName( String projectIdOrName ){
+        this.projectIdOrName = projectIdOrName;
+    }
+
+    public String getProjectIdOrNameOther(){
+        return projectIdOrNameOther;
+    }
+
+    public void setProjectIdOrNameOther( String projectIdOrNameOther ){
+        this.projectIdOrNameOther = projectIdOrNameOther;
+    }
+
+    public String getProject2IdOrName(){
+        return project2IdOrName;
+    }
+
+    public void setProject2IdOrName( String project2IdOrName ){
+        this.project2IdOrName = project2IdOrName;
+    }
+
+    public String getProject2IdOrNameOther(){
+        return project2IdOrNameOther;
+    }
+
+    public void setProject2IdOrNameOther( String project2IdOrNameOther ){
+        this.project2IdOrNameOther = project2IdOrNameOther;
+    }
+
+    public String getOrderUrgency(){
+        return orderUrgency;
+    }
+
+    public void setOrderUrgency( String orderUrgency ){
+        this.orderUrgency = orderUrgency;
+    }
+
+    public String getPatientDiagnosis(){
+        return patientDiagnosis;
+    }
+
+    public void setPatientDiagnosis( String patientDiagnosis ){
+        this.patientDiagnosis = patientDiagnosis;
+    }
+
+    public String getPatientBedNumber(){
+        return patientBedNumber;
+    }
+
+    public void setPatientBedNumber( String patientBedNumber ){
+        this.patientBedNumber = patientBedNumber;
+    }
+
+    public String getPatientRoomNumber(){
+        return patientRoomNumber;
+    }
+
+    public void setPatientRoomNumber( String patientRoomNumber ){
+        this.patientRoomNumber = patientRoomNumber;
+    }
+
+    public String getPatientClinicalDept(){
+        return patientClinicalDept;
+    }
+
+    public void setPatientClinicalDept( String patientClinicalDept ){
+        this.patientClinicalDept = patientClinicalDept;
+    }
+
+    public String getPatientClinicalDeptId(){
+        return patientClinicalDeptId;
+    }
+
+    public void setPatientClinicalDeptId( String patientClinicalDeptId ){
+        this.patientClinicalDeptId = patientClinicalDeptId;
+    }
+
+    public String getPatientAgeValue(){
+        return patientAgeValue;
+    }
+
+    public void setPatientAgeValue( String patientAgeValue ){
+        this.patientAgeValue = patientAgeValue;
+    }
+
+    public String getPatientAgeUnits(){
+        return patientAgeUnits;
+    }
+
+    public void setPatientAgeUnits( String patientAgeUnits ){
+        this.patientAgeUnits = patientAgeUnits;
     }
 
     public String getTestLocationCode(){

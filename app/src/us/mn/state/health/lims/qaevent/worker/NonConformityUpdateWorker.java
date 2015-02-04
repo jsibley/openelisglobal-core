@@ -437,6 +437,13 @@ public class NonConformityUpdateWorker {
 			patient.setNationalId(webData.getNationalId());
 		} 
 		
+		if (webData.getNewExternalId() && !GenericValidator.isBlankOrNull(webData.getExternalId())) { // number
+			updatePatient = true;
+			patient = sampleHumanDAO.getPatientForSample(sample);
+			patient.setSysUserId(webData.getCurrentSysUserId());
+			patient.setExternalId(webData.getExternalId());
+		} 
+		
 		if (webData.getNewSubject() && !GenericValidator.isBlankOrNull(webData.getSubjectNo())) {
 			if(patient == null){
 				patient = sampleHumanDAO.getPatientForSample(sample);
@@ -511,12 +518,15 @@ public class NonConformityUpdateWorker {
 			patient = patientDAO.readPatient(webData.getPatientId());
 		} else if (!GenericValidator.isBlankOrNull(webData.getNationalId())) {
 			patient = patientDAO.getPatientByNationalId(webData.getNationalId());
+		} else if (!GenericValidator.isBlankOrNull(webData.getExternalId())) {
+			patient = patientDAO.getPatientByExternalId(webData.getExternalId());
 		}
 
 		if (patient == null) {
 			insertPatient = true;
 			patient = new Patient();
 			patient.setNationalId(webData.getNationalId());
+			patient.setExternalId(webData.getExternalId());
 			patient.setPerson(PatientUtil.getUnknownPerson());
 		}
 

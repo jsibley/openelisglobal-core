@@ -53,6 +53,13 @@ setDatePattern(pattern) {
 
 function /*void*/
 setValidIndicaterOnField(valid, messageFieldIdPrefix) {
+    if (useModalSampleEntry) {
+    	if (!$(messageFieldIdPrefix))
+    		selectFieldErrorDisplay(valid, $($jq('[name="' + messageFieldIdPrefix + '"]').attr('id')));
+    	else
+    		selectFieldErrorDisplay(valid, $(messageFieldIdPrefix));
+        return;
+    }
     var fieldMessage = messageFieldIdPrefix + "Message";
 
     var mdiv = $(fieldMessage);
@@ -91,7 +98,8 @@ function setFieldErrorDisplay(field) {
 }
 
 function clearFieldErrorDisplay(field) {
-    field.className = field.className.replace(/(?:^|\s)error(?!\S)/, '');
+	if (field)
+		field.className = field.className.replace(/(?:^|\s)error(?!\S)/, '');
 }
 
 function /*boolean*/

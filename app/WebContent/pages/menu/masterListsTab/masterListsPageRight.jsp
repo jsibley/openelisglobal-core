@@ -156,6 +156,12 @@ if (request.getAttribute("menuDefinition") != null) {
 <logic:equal name="menuDef" value="TypeOfSamplePanelMenuDefinition">
   <tiles:insert attribute="rightTypeOfSamplePanel" />
 </logic:equal>
+<logic:equal name="menuDef" value="TypeOfSampleSourceMenuDefinition">
+  <tiles:insert attribute="rightTypeOfSampleSource" />
+</logic:equal>
+<logic:equal name="menuDef" value="SampleLabelMenuDefinition">
+  <tiles:insert attribute="rightSampleLabel" />
+</logic:equal>
 <logic:equal name="menuDef" value="TypeOfTestResultMenuDefinition">
   <tiles:insert attribute="rightTypeOfTestResult" />
 </logic:equal>

@@ -30,7 +30,8 @@ public abstract class ConfigurationProperties {
 
     public enum LOCALE{
         ENGLISH("en_US"),
-        FRENCH("fr-FR");
+        FRENCH("fr-FR"),
+        VIETNAMESE("vi-VN");
         private String locale;
         private LOCALE(String locale){
             this.locale = locale;
@@ -82,6 +83,58 @@ public abstract class ConfigurationProperties {
         AUTOFILL_COLLECTION_DATE,    //If true the collection date will be auto-filled with current date
         failedValidationMarker,      //If true results that failed validation will have icon next to them
         resultsResendTime,           //How much time between trying to resend results that failed to reach their destination
+		USE_SAMPLE_TYPE_AUTOCOMPLETE,//If true, use autocomplete field for sample type, else render select list
+		USE_SAMPLE_SOURCE,			//If true, render sample source inputs on sample entry forms
+        USE_SAMPLE_SOURCE_AUTOCOMPLETE,//If true, use autocomplete field for sample source, else render select list
+        MASTER_LABELS_ACCESSION,	//If true, print accession number on master labels
+        MASTER_LABELS_COLLECTION_DATE,//If true, print collection date on master labels
+        MASTER_LABELS_COLLECTION_TIME,//If true, print collection time on master labels
+        MASTER_LABELS_PATIENT_ID,	//If true, print patient's ID on master labels
+        MASTER_LABELS_NATIONAL_ID,	//If true, print patient's national ID on master labels
+        MASTER_LABELS_PATIENT_MRN,	//If true, print patient's medical record number on master labels
+        MASTER_LABELS_PATIENT_NAME,	//If true, print patient's name on master labels
+        MASTER_LABELS_PATIENT_DOB,	//If true, print patient's date of birth on master labels
+        MASTER_LABELS_PATIENT_AGE,	//If true, print patient's age on master labels
+        MASTER_LABELS_PATIENT_SEX,	//If true, print patient's gender on master labels
+        MASTER_LABELS_LAB_SECTIONS,	//If true, print list of lab sections for order on master labels
+        MASTER_LABELS_SPECIMEN_TYPE,//If true, print list of specimen types for order on master labels
+        MASTER_PREFIX_ACCESSION,	//Prefix to print on master labels before the accession number
+        MASTER_PREFIX_COLLECTION_DATE,//Prefix to print on master labels before the collection date
+        MASTER_PREFIX_COLLECTION_TIME,//Prefix to print on master labels before the collection time
+        MASTER_PREFIX_PATIENT_ID,	//Prefix to print on master labels before the patient's ID
+        MASTER_PREFIX_NATIONAL_ID,	//Prefix to print on master labels before the patient's national ID
+        MASTER_PREFIX_PATIENT_MRN,	//Prefix to print on master labels before the patient's medical record number
+        MASTER_PREFIX_PATIENT_NAME,	//Prefix to print on master labels before the patient's name
+        MASTER_PREFIX_PATIENT_DOB,	//Prefix to print on master labels before the patient's date of birth
+        MASTER_PREFIX_PATIENT_AGE,	//Prefix to print on master labels before the patient's age
+        MASTER_PREFIX_PATIENT_SEX,	//Prefix to print on master labels before the patient's gender
+        MASTER_PREFIX_LAB_SECTIONS,	//Prefix to print on master labels before the list of lab sections for order
+        MASTER_PREFIX_SPECIMEN_TYPE,//Prefix to print on master labels before the list of specimen types for order
+        USE_SPECIMEN_LABELS,		//If true, show sample item print label fields/buttons
+        SPECIMEN_LABELS_ACCESSION,	//If true, print accession number on specimen labels
+        SPECIMEN_LABELS_COLLECTION_DATE,//If true, print collection date on specimen labels
+        SPECIMEN_LABELS_COLLECTION_TIME,//If true, print collection time on specimen labels
+        SPECIMEN_LABELS_PATIENT_ID,	//If true, print patient's ID on specimen labels
+        SPECIMEN_LABELS_NATIONAL_ID,//If true, print patient's national ID on specimen labels
+        SPECIMEN_LABELS_PATIENT_MRN,//If true, print patient's medical record number on specimen labels
+        SPECIMEN_LABELS_PATIENT_NAME,//If true, print patient's name on specimen labels
+        SPECIMEN_LABELS_PATIENT_DOB,//If true, print patient's date of birth on specimen labels
+        SPECIMEN_LABELS_PATIENT_AGE,//If true, print patient's age on specimen labels
+        SPECIMEN_LABELS_PATIENT_SEX,//If true, print patient's gender on specimen labels
+        SPECIMEN_LABELS_LAB_SECTIONS,//If true, print list of lab sections for order on specimen labels
+        SPECIMEN_LABELS_SPECIMEN_TYPE,//If true, print list of specimen types for order on specimen labels
+        SPECIMEN_PREFIX_ACCESSION,	//Prefix to print on specimen labels before the accession number
+        SPECIMEN_PREFIX_COLLECTION_DATE,//Prefix to print on specimen labels before the collection date
+        SPECIMEN_PREFIX_COLLECTION_TIME,//Prefix to print on specimen labels before the collection time
+        SPECIMEN_PREFIX_PATIENT_ID,	//Prefix to print on specimen labels before the patient's ID
+        SPECIMEN_PREFIX_NATIONAL_ID,//Prefix to print on specimen labels before the patient's national ID
+        SPECIMEN_PREFIX_PATIENT_MRN,//Prefix to print on specimen labels before the patient's medical record number
+        SPECIMEN_PREFIX_PATIENT_NAME,//Prefix to print on specimen labels before the patient's name
+        SPECIMEN_PREFIX_PATIENT_DOB,//Prefix to print on specimen labels before the patient's date of birth
+        SPECIMEN_PREFIX_PATIENT_AGE,//Prefix to print on specimen labels before the patient's age
+        SPECIMEN_PREFIX_PATIENT_SEX,//Prefix to print on specimen labels before the patient's gender
+        SPECIMEN_PREFIX_LAB_SECTIONS,//Prefix to print on specimen labels before the list of lab sections for order
+        SPECIMEN_PREFIX_SPECIMEN_TYPE,//Prefix to print on specimen labels before the list of specimen types for order
         TRACK_PATIENT_PAYMENT,       //If true then patient payment status can be entered
         ALERT_FOR_INVALID_RESULTS,   //If true then technician will get an alert for results outside of the valid range
         DEFAULT_LANG_LOCALE,         //Default language locale

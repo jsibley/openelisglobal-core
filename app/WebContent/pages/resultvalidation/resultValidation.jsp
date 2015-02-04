@@ -343,7 +343,7 @@ function /*boolean*/ handleEnterEvent(){
 	<% } %>
 
 	&nbsp;
-	<bean:write name="<%=formName%>" property="paging.currentPage"/> of
+	<bean:write name="<%=formName%>" property="paging.currentPage"/> <bean:message key="list.of"/>
 	<bean:write name="<%=formName%>" property="paging.totalPages"/>
 	<span style="float : right" >
 	<span style="visibility: hidden" id="searchNotFound"><em><%= StringUtil.getMessageForKey("search.term.notFound") %></em></span>
@@ -700,6 +700,6 @@ function /*boolean*/ handleEnterEvent(){
 	<% } %>
 
 		&nbsp;
-		<bean:write name="<%=formName%>" property="paging.currentPage"/> of
+		<bean:write name="<%=formName%>" property="paging.currentPage"/> <bean:message key="list.of"/>
 		<bean:write name="<%=formName%>" property="paging.totalPages"/>
 	</logic:notEqual>

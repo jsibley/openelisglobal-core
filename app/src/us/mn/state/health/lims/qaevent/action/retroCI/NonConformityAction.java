@@ -207,6 +207,12 @@ public class NonConformityAction extends BaseAction{
 			PropertyUtils.setProperty(dynaForm, "nationalId", nationalId);
 		}
 		
+		String externalId = patientService.getExternalId();
+		if(!GenericValidator.isBlankOrNull(externalId)){
+			PropertyUtils.setProperty(dynaForm, "externalIdNew", Boolean.FALSE);
+			PropertyUtils.setProperty(dynaForm, "externalId", externalId);
+		}
+		
 		ObservationHistory doctorObservation = getRefererObservation(sample);
 		if(doctorObservation != null){
 			PropertyUtils.setProperty(dynaForm, "doctorNew", Boolean.FALSE);

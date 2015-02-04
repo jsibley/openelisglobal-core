@@ -40,7 +40,9 @@
     boolean requesterLastNameRequired = false;
     boolean acceptExternalOrders = false;
     IAccessionNumberValidator accessionNumberValidator;
-
+    boolean useModalSampleEntry = false;
+    boolean useRejectionInModalSampleEntry = false;
+	boolean supportExternalID = false;
 %>
 <%
     String path = request.getContextPath();
@@ -53,6 +55,9 @@
     accessionNumberValidator = AccessionNumberUtil.getAccessionNumberValidator();
     requesterLastNameRequired = FormFields.getInstance().useField(Field.SampleEntryRequesterLastNameRequired);
     acceptExternalOrders = ConfigurationProperties.getInstance().isPropertyValueEqual(Property.ACCEPT_EXTERNAL_ORDERS, "true");
+	useModalSampleEntry = FormFields.getInstance().useField( Field.SAMPLE_ENTRY_MODAL_VERSION );
+	useRejectionInModalSampleEntry = FormFields.getInstance().useField( Field.SAMPLE_ENTRY_REJECTION_IN_MODAL_VERSION );
+ 	supportExternalID = FormFields.getInstance().useField(Field.EXTERNAL_ID);
 %>
 
 
@@ -70,6 +75,7 @@
 <script src="scripts/customAutocomplete.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <script type="text/javascript" src="scripts/ajaxCalls.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <script type="text/javascript" src="scripts/laborder.js?ver=<%= Versioning.getBuildNumber() %>"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jquery.selectlist.dev.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 
 
 <script type="text/javascript" >
@@ -81,6 +87,9 @@ var acceptExternalOrders = <%= acceptExternalOrders %>;
 var dirty = false;
 var invalidSampleElements = [];
 var requiredFields = new Array("labNo", "receivedDateForDisplay" );
+var useModalSampleEntry = <%= useModalSampleEntry %>;
+var usePatientInfoModal = false;
+var useSampleRejection = <%=useRejectionInModalSampleEntry%>;
 
 if( requesterLastNameRequired ){
     requiredFields.push("providerLastNameID");
@@ -92,7 +101,20 @@ if( requesterLastNameRequired ){
     requiredFields.push("providerLastNameID");
 <% } %>
 
- 
+function prePageOnLoad()
+{
+    var accessionNumber = $("labNo");
+    accessionNumber.focus();
+    
+    // generate first sample row, if using modal version of sample entry
+    if (useModalSampleEntry && $("samplesAddedTable").rows.length == 1) {
+    	addEmptySampleRow("notDirty");
+   		$jq("#addSampleButton").attr("disabled", false);
+    }
+
+    setSave();
+}
+
 function isFieldValid(fieldname)
 {
     return invalidSampleElements.indexOf(fieldname) == -1;
@@ -140,9 +162,9 @@ function  /*void*/ processValidateEntryDateSuccess(xhr){
     setSave();
 
     if( message == '<%=IActionConstants.INVALID_TO_LARGE%>' ){
-        alert( '<bean:message key="error.date.inFuture"/>' );
+        alert( "<bean:message key="error.date.inFuture"/>" );
     }else if( message == '<%=IActionConstants.INVALID_TO_SMALL%>' ){
-        alert( '<bean:message key="error.date.inPast"/>' );
+        alert( "<bean:message key="error.date.inPast"/>" );
     }
 }
 
@@ -331,21 +353,33 @@ function capitalizeValue( text){
 
 function checkOrderReferral( value ){
 
-    getLabOrder(value, processLabOrderSuccess);
+	if (useModalSampleEntry) {
+		$jq("#loading-modal").modal('show');
+	    getLabOrder(value, processLabOrderSuccess, processGetTestFailure);
+	} else {
+    	getLabOrder(value, processLabOrderSuccess);
+	}
     showSection( $("orderSectionId"), 'orderDisplay');
 }
 
 function clearOrderData() {
 
-    removeAllRows();
-    clearTable(addTestTable);
-    clearTable(addPanelTable);
+	if (useModalSampleEntry) {
+		resetSampleRows();
+	} else {
+    	removeAllRows();
+    	clearTable(addTestTable);
+    	clearTable(addPanelTable);
+	}
+	removeCrossPanelsTestsTable();
     clearSearchResultTable();
     addPatient();
     clearPatientInfo();
     clearRequester();
-    removeCrossPanelsTestsTable();
-
+	for( var i = 0; i < invalidSampleElements.length; ++i ){
+		setValidIndicaterOnField( true, $(invalidSampleElements[i]).name );
+	}
+	invalidSampleElements = [];
 }
 
 function processLabOrderSuccess(xhr){
@@ -400,17 +434,25 @@ function processLabOrderSuccess(xhr){
 
         notifyChangeListeners();
         testAndSetSave();
-        populateCrossPanelsAndTests(CrossPanels, CrossTests, '<%=entryDate%>');
+   		populateCrossPanelsAndTests(CrossPanels, CrossTests, '<%=entryDate%>');
         displaySampleTypes('<%=entryDate%>');
 
         if (SampleTypes.length > 0)
              sampleClicked(1);
 
-        } else {
-            $jq(".patientSearch").show();
-            alert(message.firstChild.nodeValue);
+        if (useModalSampleEntry) {
+        	$jq("#loading-modal").modal('hide');
+        	if (crosspanels.length > 0 || crosstests.length > 0) {
+				$jq("#warning-modal-body-text").text('<%= StringUtil.getMessageForKey("electronic.order.warning.missingSampletype")%>');
+    			$jq("#warning-modal").modal('show');
+        	}
         }
-
+    } else {
+        $jq(".patientSearch").show();
+        alert(message.firstChild.nodeValue);
+        if (useModalSampleEntry)
+        	$jq("#loading-modal").modal('hide');
+    }
 }
 
 function parsePatient(patienttag) {
@@ -419,7 +461,7 @@ function parsePatient(patienttag) {
     if (guidtag) {
         if (guidtag[0].firstChild) {
             guid = guidtag[0].firstChild.nodeValue;
-            patientSearch("", "", "", "", "", "", guid, "true", processSearchSuccess, processSearchFailure );
+            patientSearch("", "", "", "", "", "", "", guid, "true", processSearchSuccess );
         }       
     }
     
@@ -428,12 +470,37 @@ function parsePatient(patienttag) {
 
 function clearRequester() {
 
-    $("providerFirstNameID").value = '';
-    $("providerLastNameID").value = '';
     $("labNo").value = '';
     $("receivedDateForDisplay").value = '<%=entryDate%>';
     $("receivedTime").value = '';
+    <% if( FormFields.getInstance().useField( Field.SAMPLE_ENTRY_USE_REFFERING_PATIENT_NUMBER ) ){%>
     $("referringPatientNumber").value = '';
+    <% } %>
+	<% if( FormFields.getInstance().useField( Field.PROJECT_OR_NAME ) ){ %>
+	$("projectIdOrName").value = '';
+	$("projectIdOrNameOther").value = '';
+	<% } %>
+    <% if( FormFields.getInstance().useField( Field.PROJECT2_OR_NAME ) ){ %>
+	$("project2IdOrName").value = '';
+	$("project2IdOrNameOther").value = '';
+	<% } %>
+	<% if( FormFields.getInstance().useField( FormFields.Field.ProviderInfo ) ){ %>
+    $("providerFirstNameID").value = '';
+    $("providerWorkPhoneID").value = '';
+	<% if (!FormFields.getInstance().useField(Field.SINGLE_NAME_FIELD)) { %>
+    $("providerLastNameID").value = '';
+    <% } %>
+	<% if( FormFields.getInstance().useField( Field.SUBMITTER_NUMBER ) ){ %>
+	$("submitterNumber").value = '';
+	$("clinicName").value = '';
+    <% } %>
+	<% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) { %>
+    $("providerWorkPhoneExt").value = '';
+	<% } %>
+	<% } %>
+	<% if (trackPayment) { %>
+    $("paymentOptionSelection").value = '';
+	<% } %>
 
 }
 
@@ -448,7 +515,11 @@ function parseRequester(requester) {
     var last = "";
     if (lastName.length > 0) {
             last = lastName[0].firstChild.nodeValue;
-            $("providerLastNameID").value = last;    
+        	<% if (!FormFields.getInstance().useField(Field.SINGLE_NAME_FIELD)) { %>
+            $("providerLastNameID").value = last;
+            <% } else { %>
+            $("providerFirstNameID").value = first.length > 0 ? first + " " + last : last;
+            <% } %>
     }
     
     var phoneNum = requester.item(0).getElementsByTagName("providerWorkPhoneID");
@@ -456,7 +527,16 @@ function parseRequester(requester) {
     if (phoneNum.length > 0) {
         if (phoneNum[0].firstChild) {
             phone = phoneNum[0].firstChild.nodeValue;
+            <% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) { %>
+            if (phone.indexOf(" ") != -1) {
+            	$("providerWorkPhoneID").value = phone.substring(0, phone.indexOf(" "));
+            	$("providerWorkPhoneExt").value = phone.substring(phone.indexOf(" ") + 1);
+            } else {
+                $("providerWorkPhoneID").value = phone;
+            }
+            <% } else { %>
             $("providerWorkPhoneID").value = phone;
+            <% } %>
         }
     }
     
@@ -512,7 +592,7 @@ function addTestsToSampleType(sampleType, testNodes) {
 
 
 function parseCrossPanels(crosspanels, crossSampleTypeMap, crossSampleTypeOrderMap) {
-        for(i = 0; i < crosspanels.length; i++ ) {
+        for (var i = 0; i < crosspanels.length; i++ ) {
             var crossPanelName = crosspanels.item(i).getElementsByTagName("name")[0].firstChild.nodeValue;
             var crossPanelId   = crosspanels.item(i).getElementsByTagName("id")[0].firstChild.nodeValue;
             var crossSampleTypes         = crosspanels.item(i).getElementsByTagName("crosssampletypes")[0];
@@ -520,8 +600,10 @@ function parseCrossPanels(crosspanels, crossSampleTypeMap, crossSampleTypeOrderM
             CrossPanels[i] = new CrossPanel(crossPanelId, crossPanelName);
             CrossPanels[i].sampleTypes = getNodeNamesByTagName(crossSampleTypes, "crosssampletype");
             CrossPanels[i].typeMap = new Array(CrossPanels[i].sampleTypes.length);
-            
-            for (j = 0; j < CrossPanels[i].sampleTypes.length; j = j + 1) {
+            if (useModalSampleEntry)
+            	CrossPanels[i].testIds = new Array(CrossPanels[i].sampleTypes.length);
+
+            for (var j = 0; j < CrossPanels[i].sampleTypes.length; j = j + 1) {
                 CrossPanels[i].typeMap[CrossPanels[i].sampleTypes[j].name] = "t";
                 var sampleType = getCrossSampleTypeMapEntry(CrossPanels[i].sampleTypes[j].id);
                 
@@ -530,12 +612,37 @@ function parseCrossPanels(crosspanels, crossSampleTypeMap, crossSampleTypeOrderM
                     sampleTypeOrder = sampleTypeOrder + 1;
                     crossSampleTypeOrderMap[sampleTypeOrder] = CrossPanels[i].sampleTypes[j].id;
                 }
+
+                if (useModalSampleEntry) {
+                    var testNode = crossSampleTypes.getElementsByTagName("panelTests")[j];
+                    var testIdList = "";
+                    var testNameList = "";
+                   	var ptNodes = testNode.getElementsByTagName("test");
+
+                   	for (var z = 0; z < ptNodes.length; z++ ) {
+						var pName = ptNodes.item(z).getElementsByTagName("name")[0].firstChild.nodeValue;
+        	         	if (testNameList.length == 0) {
+        	         		testNameList = pName;
+        	          	} else {
+        	          		testNameList += "," + pName;
+        	           	}
+        	            var pId = ptNodes.item(z).getElementsByTagName("id")[0].firstChild.nodeValue;
+        	           	if (testIdList.length == 0) {
+        	           		testIdList = pId;
+        	           	} else {
+        	           		testIdList += "," + pId;
+        	           	}
+                    }
+                	
+                	CrossPanels[i].testIds[CrossPanels[i].sampleTypes[j].id] = testIdList;
+                	CrossPanels[i].testNames = testNameList;
+                }
             }
         }
 } 
 
 function parseCrossTests(crosstests, crossSampleTypeMap, crossSampleTypeOrderMap) {
-    for (x = 0; x < crosstests.length; x = x + 1) {
+    for (var x = 0; x < crosstests.length; x = x + 1) {
         var crossTestName = crosstests.item(x).getElementsByTagName("name")[0].firstChild.nodeValue;
    //     var crossTestId   = crosstests.item(x).getElementsByTagName("id")[0].firstChild.nodeValue;
         var crossSampleTypes  = crosstests.item(x).getElementsByTagName("crosssampletypes")[0];
@@ -619,17 +726,23 @@ function  processPhoneSuccess(xhr){
 <span class="requiredlabel">*</span>
 
 <div id="samplesDisplay" class="colorFill" style="display:none;" >
+<% if (useModalSampleEntry) { %>
+	<div id="sampleAddModal">
+		<tiles:insert attribute="addSampleModal"/>
+	</div>
+<% } else { %>
     <tiles:insert attribute="addSample"/>
+	<br />
+<% } %>
 </div>
 
-<br />
 <hr style="width:100%;height:5px" />
 <html:hidden name="<%=formName%>" property="patientPK" styleId="patientPK"/>
 
 <table style="width:100%">
     <tr>
         <td style="width:15%;text-align:left">
-            <input type="button" name="showHide" value="+" onclick="showHideSection(this, 'patientInfo');" id="orderSectionId">
+            <input type="button" name="showHide" value="+" onclick="showHideSection(this, 'patientInfo');" id="patientSectionId">
             <bean:message key="sample.entry.patient" />:
             <% if ( patientRequired ) { %><span class="requiredlabel">*</span><% } %>
         </td>
@@ -639,9 +752,9 @@ function  processPhoneSuccess(xhr){
         </td>
         <td style="width:15%" id="mother"><b>&nbsp;</b></td>
         <td style="width:10%">
-            <% if( useSTNumber){ %><bean:message key="patient.ST.number"/>:<% } %>
+            <% if( useSTNumber){ %><bean:message key="patient.ST.number"/>:<% } else if (supportExternalID) { %><bean:message key="patient.externalId"/>:<% } %>
         </td>
-        <td style="width:15%" id="st"><b>&nbsp;</b></td>
+        <td style="width:15%" id=<% if (useSTNumber) { %>"st"<% } else if (supportExternalID) { %>"external"<% } %>><b>&nbsp;</b></td>
         <td style="width:5%">&nbsp;</td>
     </tr>
     <tr>
@@ -663,10 +776,12 @@ function  processPhoneSuccess(xhr){
 </table>
 
 <div id="patientInfo"  style="display:none;" >
+    <tiles:useAttribute name="displayOrderItemsInPatientManagement" scope="request" />
     <tiles:insert attribute="patientInfo" />
     <tiles:insert attribute="patientClinicalInfo" />
 </div>
 </div>
+
 <script type="text/javascript" >
 
 //all methods here either overwrite methods in tiles or all called after they are loaded
@@ -685,9 +800,27 @@ function /*void*/ makeDirty(){
 
 function  /*void*/ savePage()
 {
-    loadSamples(); //in addSample tile
+	if (!useModalSampleEntry) {
+    	loadSamples(); //in addSample tile
+	} else {
+		loadXml(); //in sampleAddModal tile
+	
+		// Clear any forced placeholder values before form submission
+		$jq('input[placeholder]').each(function() {
+			var input = $jq(this);
+    		if (input.val() == input.attr('placeholder')) {
+				input.val('');
+			}
+		});
+	}
 
-  window.onbeforeunload = null; // Added to flag that formWarning alert isn't needed.
+	<% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) { %>
+	// Merge requester work phone and extension (space separated) before submission
+	if ($('providerWorkPhoneExt').value.length > 0)
+		$('providerWorkPhoneID').value = $('providerWorkPhoneID').value + " " + $('providerWorkPhoneExt').value;
+	<% } %>
+	
+  	window.onbeforeunload = null; // Added to flag that formWarning alert isn't needed.
     var form = window.document.forms[0];
     form.action = "SamplePatientEntrySave.do";
     form.submit();
@@ -696,20 +829,26 @@ function  /*void*/ savePage()
 
 function /*void*/ setSave()
 {
-    var validToSave =  patientFormValid() && sampleEntryTopValid();
+	var validToSave =  patientFormValid() && sampleEntryTopValid();
+
+	if (useModalSampleEntry) {	
+		//disable or enable print button based on validity/visibility of fields
+		$('printButton').disabled = !isPrintEnabled();
+	}
+	
     $("saveButtonId").disabled = !validToSave;
 }
 
 //called from patientSearch.jsp
-function /*void*/ selectedPatientChangedForSample(firstName, lastName, gender, DOB, stNumber, subjectNumb, nationalID, mother, pk ){
-    patientInfoChangedForSample( firstName, lastName, gender, DOB, stNumber, subjectNumb, nationalID, mother, pk );
+function /*void*/ selectedPatientChangedForSample(firstName, lastName, gender, DOB, stNumber, subjectNumb, nationalID, mother, pk, externalID ){
+    patientInfoChangedForSample( firstName, lastName, gender, DOB, stNumber, subjectNumb, nationalID, mother, pk, externalID );
     $("patientPK").value = pk;
 
     setSave();
 }
 
 //called from patientManagment.jsp
-function /*void*/ patientInfoChangedForSample( firstName, lastName, gender, DOB, stNumber, subjectNum, nationalID, mother, pk ){
+function /*void*/ patientInfoChangedForSample( firstName, lastName, gender, DOB, stNumber, subjectNum, nationalID, mother, pk, externalID ){
     setPatientSummary( "firstName", firstName );
     setPatientSummary( "lastName", lastName );
     setPatientSummary( "gender", gender );
@@ -718,6 +857,7 @@ function /*void*/ patientInfoChangedForSample( firstName, lastName, gender, DOB,
     setPatientSummary( "national", nationalID );
     if( useMothersName){setPatientSummary( "mother", mother );}
     $("patientPK").value = pk;
+	if (externalID) { setPatientSummary( "external", externalID); }
 
     makeDirty();
     setSave();
@@ -764,6 +904,5 @@ function /*void*/ registerSampleChangedForSampleEntry(){
 
 registerPatientChangedForSampleEntry();
 registerSampleChangedForSampleEntry();
-
 
 </script>

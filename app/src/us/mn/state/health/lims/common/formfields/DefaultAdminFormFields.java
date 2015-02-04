@@ -17,12 +17,12 @@
 */
 package us.mn.state.health.lims.common.formfields;
 
+import java.util.HashMap;
+
 import us.mn.state.health.lims.common.action.IActionConstants;
 import us.mn.state.health.lims.common.formfields.AdminFormFields.Field;
 import us.mn.state.health.lims.common.util.ConfigurationProperties;
 import us.mn.state.health.lims.common.util.ConfigurationProperties.Property;
-
-import java.util.HashMap;
 
 public class DefaultAdminFormFields extends AAdminFormFields {
 	private HashMap<AdminFormFields.Field, Boolean> defaultAttributes = new HashMap<AdminFormFields.Field, Boolean>();
@@ -65,6 +65,8 @@ public class DefaultAdminFormFields extends AAdminFormFields {
 		defaultAttributes.put(Field.TestTrailerMenu,  Boolean.FALSE);
 		defaultAttributes.put(Field.TypeOfSampleMenu,  Boolean.FALSE);
 		defaultAttributes.put(Field.TypeOfSamplePanelMenu,  Boolean.FALSE);
+		defaultAttributes.put(Field.TypeOfSampleSourceMenu,  Boolean.FALSE);
+		defaultAttributes.put(Field.SampleLabelMenu,  Boolean.FALSE);
 		defaultAttributes.put(Field.TypeOfSampleTestMenu,  Boolean.FALSE);
 		defaultAttributes.put(Field.TypeOfTestResultMenu,  Boolean.FALSE);
 		defaultAttributes.put(Field.UnitOfMeasureMenu,  Boolean.FALSE);
@@ -107,6 +109,8 @@ public class DefaultAdminFormFields extends AAdminFormFields {
 			return new CI_IPCIAdminFormFields().getImplementationAttributes();
 		}else if(IActionConstants.FORM_FIELD_SET_CI_REGIONAL.equals(fieldSet)){
 			return new CI_RegionalAdminFormFields().getImplementationAttributes();
+		}else if(IActionConstants.FORM_FIELD_SET_VN_APHL.equals(fieldSet)){
+			return new VN_APHLAdminFormFields().getImplementationAttributes();
 		}
 
 		return null;

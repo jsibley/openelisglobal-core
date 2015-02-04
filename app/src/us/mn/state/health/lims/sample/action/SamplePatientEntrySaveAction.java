@@ -25,6 +25,7 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessages;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.Transaction;
+
 import us.mn.state.health.lims.address.dao.OrganizationAddressDAO;
 import us.mn.state.health.lims.address.daoimpl.OrganizationAddressDAOImpl;
 import us.mn.state.health.lims.address.valueholder.OrganizationAddress;
@@ -36,6 +37,7 @@ import us.mn.state.health.lims.common.action.BaseActionForm;
 import us.mn.state.health.lims.common.exception.LIMSRuntimeException;
 import us.mn.state.health.lims.common.formfields.FormFields;
 import us.mn.state.health.lims.common.formfields.FormFields.Field;
+import us.mn.state.health.lims.common.services.QAService;
 import us.mn.state.health.lims.common.services.SampleAddService.SampleTestCollection;
 import us.mn.state.health.lims.common.services.StatusService;
 import us.mn.state.health.lims.common.services.StatusService.AnalysisStatus;
@@ -48,6 +50,8 @@ import us.mn.state.health.lims.common.util.validator.ActionError;
 import us.mn.state.health.lims.dataexchange.order.dao.ElectronicOrderDAO;
 import us.mn.state.health.lims.dataexchange.order.daoimpl.ElectronicOrderDAOImpl;
 import us.mn.state.health.lims.hibernate.HibernateUtil;
+import us.mn.state.health.lims.note.dao.NoteDAO;
+import us.mn.state.health.lims.note.daoimpl.NoteDAOImpl;
 import us.mn.state.health.lims.observationhistory.dao.ObservationHistoryDAO;
 import us.mn.state.health.lims.observationhistory.daoimpl.ObservationHistoryDAOImpl;
 import us.mn.state.health.lims.observationhistory.valueholder.ObservationHistory;
@@ -59,11 +63,22 @@ import us.mn.state.health.lims.organization.valueholder.Organization;
 import us.mn.state.health.lims.panel.valueholder.Panel;
 import us.mn.state.health.lims.patient.action.IPatientUpdate;
 import us.mn.state.health.lims.patient.action.PatientManagementUpdateAction;
+import us.mn.state.health.lims.patient.action.PatientManagementUpdateAction.PatientUpdateStatus;
 import us.mn.state.health.lims.patient.action.bean.PatientManagementInfo;
+import us.mn.state.health.lims.patient.valueholder.Patient;
 import us.mn.state.health.lims.person.dao.PersonDAO;
 import us.mn.state.health.lims.person.daoimpl.PersonDAOImpl;
+import us.mn.state.health.lims.project.dao.ProjectDAO;
+import us.mn.state.health.lims.project.daoimpl.ProjectDAOImpl;
+import us.mn.state.health.lims.project.valueholder.Project;
 import us.mn.state.health.lims.provider.dao.ProviderDAO;
 import us.mn.state.health.lims.provider.daoimpl.ProviderDAOImpl;
+import us.mn.state.health.lims.qaevent.dao.QaEventDAO;
+import us.mn.state.health.lims.qaevent.dao.QaObservationDAO;
+import us.mn.state.health.lims.qaevent.daoimpl.QaEventDAOImpl;
+import us.mn.state.health.lims.qaevent.daoimpl.QaObservationDAOImpl;
+import us.mn.state.health.lims.qaevent.valueholder.QaEvent;
+import us.mn.state.health.lims.qaevent.valueholder.QaObservation;
 import us.mn.state.health.lims.requester.dao.SampleRequesterDAO;
 import us.mn.state.health.lims.requester.daoimpl.SampleRequesterDAOImpl;
 import us.mn.state.health.lims.requester.valueholder.SampleRequester;
@@ -75,6 +90,12 @@ import us.mn.state.health.lims.samplehuman.dao.SampleHumanDAO;
 import us.mn.state.health.lims.samplehuman.daoimpl.SampleHumanDAOImpl;
 import us.mn.state.health.lims.sampleitem.dao.SampleItemDAO;
 import us.mn.state.health.lims.sampleitem.daoimpl.SampleItemDAOImpl;
+import us.mn.state.health.lims.sampleproject.dao.SampleProjectDAO;
+import us.mn.state.health.lims.sampleproject.daoimpl.SampleProjectDAOImpl;
+import us.mn.state.health.lims.sampleproject.valueholder.SampleProject;
+import us.mn.state.health.lims.sampleqaevent.dao.SampleQaEventDAO;
+import us.mn.state.health.lims.sampleqaevent.daoimpl.SampleQaEventDAOImpl;
+import us.mn.state.health.lims.sampleqaevent.valueholder.SampleQaEvent;
 import us.mn.state.health.lims.test.dao.TestDAO;
 import us.mn.state.health.lims.test.dao.TestSectionDAO;
 import us.mn.state.health.lims.test.daoimpl.TestDAOImpl;
@@ -84,6 +105,7 @@ import us.mn.state.health.lims.test.valueholder.TestSection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
@@ -114,6 +136,9 @@ public class SamplePatientEntrySaveAction extends BaseAction {
         ActionMessages errors = new ActionMessages();
 
         boolean trackPayments = ConfigurationProperties.getInstance().isPropertyValueEqual(Property.TRACK_PATIENT_PAYMENT, "true");
+        if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_MODAL_VERSION) &&
+            FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REJECTION_IN_MODAL_VERSION))
+        	updateData.setSampleRejection(true);
 
 		String receivedDateForDisplay =  sampleOrder.getReceivedDateForDisplay();
 
@@ -125,6 +150,7 @@ public class SamplePatientEntrySaveAction extends BaseAction {
 
         updateData.setCollectionDateFromRecieveDateIfNeeded( receivedDateForDisplay );
         updateData.initializeRequester( sampleOrder );
+        updateData.setProjectIds(sampleOrder);
 
 		IPatientUpdate patientUpdate = new PatientManagementUpdateAction();
 		testAndInitializePatientForSaving(mapping, request, patientInfo, patientUpdate, updateData);
@@ -132,9 +158,14 @@ public class SamplePatientEntrySaveAction extends BaseAction {
         updateData.setAccessionNumber( sampleOrder.getLabNo() );
 		updateData.initProvider( sampleOrder );
 		updateData.initSampleData( dynaForm.getString( "sampleXML" ), receivedDateForDisplay, trackPayments, sampleOrder );
+		if (patientUpdate.getPatientUpdateStatus() == PatientUpdateStatus.ADD && !updateData.isNewSample())
+			updatePatientInfo(patientInfo, patientUpdate, updateData, mapping, request);
 		updateData.validateSample( errors );
 
 		if (errors.size() > 0) {
+			// we need to clear sampleOrderItems.labNo, else the field will not show up in the sampleOrder.jsp tile
+			// (probably a side-effect of not wanting the labNo field displayed on the sample edit page)
+			sampleOrder.setLabNo("");
 			saveErrors(request, errors);
 			request.setAttribute(Globals.ERROR_KEY, errors);
 			return mapping.findForward(FWD_FAIL);
@@ -157,6 +188,9 @@ public class SamplePatientEntrySaveAction extends BaseAction {
 			if (useInitialSampleCondition) {
 				persistInitialSampleConditions(updateData);
 			}
+
+			if (updateData.getSampleRejection())
+				persistSampleRejectionData(updateData);
 
 			persistObservations(updateData);
 
@@ -240,7 +274,10 @@ public class SamplePatientEntrySaveAction extends BaseAction {
 			personDAO.insertData(updateData.getProviderPerson());
             updateData.getProvider().setPerson( updateData.getProviderPerson() );
 
-			providerDAO.insertData(updateData.getProvider());
+    		if (updateData.isNewSample())
+    			providerDAO.insertData(updateData.getProvider());
+    		else
+    			providerDAO.updateData(updateData.getProvider());
 		}
 	}
 
@@ -252,11 +289,17 @@ public class SamplePatientEntrySaveAction extends BaseAction {
 		TestDAO testDAO = new TestDAOImpl();
 		String analysisRevision = SystemConfiguration.getInstance().getAnalysisDefaultRevision();
 
-		sampleDAO.insertDataWithAccessionNumber(updateData.getSample());
+		if (updateData.isNewSample())
+			sampleDAO.insertDataWithAccessionNumber(updateData.getSample());
+		else
+			sampleDAO.updateData(updateData.getSample());
 
-	//	if (!GenericValidator.isBlankOrNull(projectId)) {
-	//		persistSampleProject();
-	//	}
+		if (!GenericValidator.isBlankOrNull(updateData.getProjectId())) {
+			persistSampleProject(updateData.getProjectId(), updateData);
+		}
+		if (!GenericValidator.isBlankOrNull(updateData.getProject2Id())) {
+			persistSampleProject(updateData.getProject2Id(), updateData);
+		}
 
 		for (SampleTestCollection sampleTestCollection : updateData.getSampleItemsTests()) {
 
@@ -278,26 +321,29 @@ public class SamplePatientEntrySaveAction extends BaseAction {
 
         updateData.buildSampleHuman();
 
-		sampleHumanDAO.insertData(updateData.getSampleHuman());
+		if (updateData.isNewSample())
+			sampleHumanDAO.insertData(updateData.getSampleHuman());
+		else
+			sampleHumanDAO.updateData(updateData.getSampleHuman());
 
 		if(updateData.getElectronicOrder() != null){
 			electronicOrderDAO.updateData(updateData.getElectronicOrder());
 		}
 	}
 
-/*	private void persistSampleProject() throws LIMSRuntimeException {
+	private void persistSampleProject(String projectId, SamplePatientUpdateData updateData) throws LIMSRuntimeException {
 		SampleProjectDAO sampleProjectDAO = new SampleProjectDAOImpl();
 		ProjectDAO projectDAO = new ProjectDAOImpl();
 		Project project = new Project();
-	//	project.setId(projectId);
+		project.setId(projectId);
 		projectDAO.getData(project);
 
 		SampleProject sampleProject = new SampleProject();
 		sampleProject.setProject(project);
-		sampleProject.setSample(sample);
+		sampleProject.setSample(updateData.getSample());
 		sampleProject.setSysUserId(currentUserId);
 		sampleProjectDAO.insertData(sampleProject);
-	}*/
+	}
 
 	private void persistRequesterData( SamplePatientUpdateData updateData ) {
 		SampleRequesterDAO sampleRequesterDAO = new SampleRequesterDAOImpl();
@@ -361,6 +407,53 @@ public class SamplePatientEntrySaveAction extends BaseAction {
         }
 		analysis.setTestSection(testSection);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 		return analysis;
+	}
+
+	private void updatePatientInfo(PatientManagementInfo patientInfo, IPatientUpdate patientUpdate, SamplePatientUpdateData updateData,
+			ActionMapping mapping, HttpServletRequest request) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		SampleHumanDAO sampleHumanDAO = new SampleHumanDAOImpl();
+		Patient existingPatient = sampleHumanDAO.getPatientForSample(updateData.getSample());
+		updateData.setPatientId(existingPatient.getId());
+		patientInfo.setPatientPK(existingPatient.getId());
+		patientInfo.setPatientProcessingStatus("update");
+		patientUpdate.setPatientUpdateStatus(patientInfo);
+	    updateData.setPatientErrors( patientUpdate.preparePatientData(mapping, request, patientInfo) );
+	}
+
+	private void persistSampleRejectionData(SamplePatientUpdateData updateData) {
+		SampleQaEventDAO sampleQaEventDAO = new SampleQaEventDAOImpl();
+		QaObservationDAO qaObservationDAO = new QaObservationDAOImpl();
+		NoteDAO noteDAO = new NoteDAOImpl();
+
+		QaEvent qaEvent = new QaEvent();
+		QaEventDAO qaEventDAO = new QaEventDAOImpl();
+		qaEvent.setQaEventName("Other");
+		qaEvent = qaEventDAO.getQaEventByName(qaEvent);
+		String otherId = qaEvent.getId();
+
+		for (SampleTestCollection stc : updateData.getSampleItemsTests()) {
+			if (stc.rejections != null && !stc.rejections.isEmpty()) {
+				for (QAService qaService : stc.rejections) {
+					SampleQaEvent event = qaService.getSampleQaEvent();
+					event.setSample(updateData.getSample());
+					sampleQaEventDAO.insertData(event);
+
+					/* persist "Section" and "Authorizer" QaObservations for the SampleQaEvent */
+					for (QaObservation observation : qaService.getUpdatedObservations()) {
+						observation.setObservedId(event.getId());
+						qaObservationDAO.insertData(observation);
+					}
+					
+					/* persist "Other Reason" note, if present */
+					if (!GenericValidator.isBlankOrNull(otherId) &&
+						otherId.equals(qaService.getQAEvent().getId()) &&
+						stc.rejectionOtherReason != null) {
+						stc.rejectionOtherReason.setReferenceId(event.getId());
+						noteDAO.insertData(stc.rejectionOtherReason);
+					}			 
+				}
+			}
+		}
 	}
 
 	@Override

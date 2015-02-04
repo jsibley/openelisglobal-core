@@ -2,6 +2,8 @@
 <%@ page import="us.mn.state.health.lims.common.action.IActionConstants,
                  us.mn.state.health.lims.common.formfields.FormFields,
                  us.mn.state.health.lims.common.formfields.FormFields.Field,
+                 us.mn.state.health.lims.common.util.ConfigurationProperties,
+                 us.mn.state.health.lims.common.util.ConfigurationProperties.Property,
                  us.mn.state.health.lims.common.util.DateUtil,
                  us.mn.state.health.lims.common.util.StringUtil,
                  us.mn.state.health.lims.common.util.SystemConfiguration,
@@ -35,6 +37,7 @@
     boolean subjectNumberRequired = true;
 	boolean supportNationalID = true;
 	boolean supportOccupation = true;
+	boolean supportEmployerName = true;
 	boolean supportCommune = true;
 	boolean supportAddressDepartment = false;
 	boolean supportMothersInitial = true;
@@ -43,6 +46,18 @@
 	boolean patientNamesRequired = true;
 	boolean patientAgeRequired = true;
 	boolean patientGenderRequired = true;
+	boolean useSingleNameField = false;
+	boolean useCompactLayout = false;
+	boolean useCityPicklist = false;
+	boolean linkDistrictsToCities = false;
+	boolean supportAddressWard = false;
+	boolean supportAddressDistrict = false;
+	boolean supportExternalID = false;
+	boolean supportPatientClinicalDept = false;
+	boolean supportPatientDiagnosis = false;
+	boolean supportPatientBedNumber = false;
+	boolean supportPatientRoomNumber = false;
+	boolean supportPatientChartNumber = false;
  %>
 <%
 	String path = request.getContextPath();
@@ -57,6 +72,7 @@
     subjectNumberRequired = FormFields.getInstance().useField( Field.SubjectNumberRequired );
 	supportNationalID = FormFields.getInstance().useField(Field.NationalID);
 	supportOccupation = FormFields.getInstance().useField(Field.Occupation);
+	supportEmployerName = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_EMPLOYER_NAME);
 	supportCommune = FormFields.getInstance().useField(Field.ADDRESS_COMMUNE);
 	supportMothersInitial = FormFields.getInstance().useField(Field.MotherInitial);
 	supportAddressDepartment = FormFields.getInstance().useField(Field.ADDRESS_DEPARTMENT );
@@ -74,7 +90,23 @@
 	}
 	
 	patientNamesRequired = FormFields.getInstance().useField(Field.PatientNameRequired);
+	useSingleNameField = FormFields.getInstance().useField(Field.SINGLE_NAME_FIELD);
+	useCompactLayout = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_COMPACT_LAYOUT);
+	useCityPicklist = FormFields.getInstance().useField(Field.PATIENT_CITY_PICKLIST);
+	linkDistrictsToCities = FormFields.getInstance().useField(Field.LINK_DISTRICTS_TO_CITIES);
+	supportAddressWard = FormFields.getInstance().useField(Field.ADDRESS_WARD);
+	supportAddressDistrict = FormFields.getInstance().useField(Field.ADDRESS_DISTRICT);
+ 	supportExternalID = FormFields.getInstance().useField(Field.EXTERNAL_ID);
+	supportPatientClinicalDept = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_CLINICAL_DEPT);
+	supportPatientDiagnosis = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_DIAGNOSIS);
+	supportPatientBedNumber = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_BED_NUMBER);
+	supportPatientRoomNumber = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_ROOM_NUMBER);
+	supportPatientChartNumber = FormFields.getInstance().useField(Field.SAMPLE_ENTRY_MEDICAL_RECORD_CHART_NUMBER);
 %>
+
+<% if (useCityPicklist && linkDistrictsToCities) { %>
+<script type="text/javascript" src="scripts/cityDistrictMap.js?ver=<%= Versioning.getBuildNumber() %>"></script>
+<% } %>
 
 <script type="text/javascript" >
 
@@ -89,6 +121,7 @@ var supportAKA = <%= supportAKA %>;
 var supportMothersName = <%= supportMothersName %>;
 var supportPatientType = <%= supportPatientType %>;
 var supportInsurance = <%= supportInsurance %>;
+var supportPatientChartNumber = <%= supportPatientChartNumber %>;
 var supportSubjectNumber = <%= supportSubjectNumber %>;
 var subjectNumberRequired = <%= subjectNumberRequired %>;
 var supportNationalID = <%= supportNationalID %>;
@@ -96,6 +129,7 @@ var supportMothersInitial = <%= supportMothersInitial %>;
 var supportCommune = <%= supportCommune %>;
 var supportCity = <%= FormFields.getInstance().useField(Field.ADDRESS_VILLAGE) %>;
 var supportOccupation = <%= supportOccupation %>;
+var supportEmployerName = <%= supportEmployerName %>;
 var supportAddressDepartment = <%= supportAddressDepartment %>;
 var patientRequired = <%= patientRequired %>;
 var patientIDRequired = <%= patientIDRequired %>;
@@ -107,6 +141,13 @@ var supportPatientNationality = <%= FormFields.getInstance().useField(Field.Pati
 var supportMaritialStatus = <%= FormFields.getInstance().useField(Field.PatientMarriageStatus) %>;
 var supportHealthRegion = <%= FormFields.getInstance().useField(Field.PatientHealthRegion) %>;
 var supportHealthDistrict = <%= FormFields.getInstance().useField(Field.PatientHealthDistrict) %>;
+var useSingleNameField = <%= useSingleNameField %>;
+var linkDistrictsToCities = <%= linkDistrictsToCities %>;
+var supportAddressWard = <%= supportAddressWard %>;
+var supportAddressDistrict = <%= supportAddressDistrict %>;
+var originalDistrictList = null;
+var supportExternalID = <%= supportExternalID %>;
+var supportPatientClinicalDept = <%= supportPatientClinicalDept %>;
 
 var pt_invalidElements = [];
 var pt_requiredFields = [];
@@ -118,7 +159,7 @@ if( patientGenderRequired){
 }
 if( patientNamesRequired){
 	pt_requiredFields.push("firstNameID"); 
-	pt_requiredFields.push("lastNameID"); 
+	if (!useSingleNameField) pt_requiredFields.push("lastNameID"); 
 }
 
 var pt_requiredOneOfFields = [];
@@ -130,6 +171,8 @@ if( patientIDRequired){
 		pt_requiredOneOfFields.push("ST_ID");
 	} else if (supportSubjectNumber && subjectNumberRequired){
 		pt_requiredOneOfFields = new Array("subjectNumberID");
+	} else if (supportExternalID){
+		pt_requiredOneOfFields.push("externalID");
 	}
 }
 
@@ -166,6 +209,9 @@ function  /*void*/ pt_setFieldValid(field)
 }
 
 function  /*void*/ pt_setFieldValidity( valid, fieldName ){
+    if (useModalSampleEntry)
+        fieldName = $($jq('[name="' + fieldName + '"]').attr('id'));
+
 	if( valid ){
 		pt_setFieldValid( fieldName );
 	}else{
@@ -296,7 +342,9 @@ function  /*void*/ processValidateDateSuccess(xhr){
 
 
 	if( isValid ){
+		<% if (!FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_AGE_VALUE_AND_UNITS)) { %>
 		updatePatientAge( $("dateOfBirthID") );
+		<% } %>
 	}else if( message == "<%=IActionConstants.INVALID_TO_LARGE%>" ){
 		alert( '<bean:message key="error.date.birthInPast" />' );
 	}
@@ -312,7 +360,9 @@ function  /*void*/ checkValidAgeDate(dateElement)
 		setValidIndicaterOnField(dateElement.value.blank(), dateElement.name);
 	    pt_setFieldValidity( dateElement.value.blank(),  dateElement.name);
 		pt_setSave();
+		<% if (!FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_AGE_VALUE_AND_UNITS)) { %>
 		$("age").value = null;
+		<% } %>
 	}
 }
 
@@ -476,10 +526,14 @@ function  /*void*/ processSearchPopulateSuccess(xhr)
 	var genderValue = getSelectIndexFor( "genderID", getXMLValue(response, "gender"));
 	var patientTypeValue = getSelectIndexFor( "patientTypeID", getXMLValue(response, "patientType"));
 	var insuranceValue = getXMLValue(response, "insurance");
+	var chartNumberValue = getXMLValue(response, "chartNumber");
 	var occupationValue = getXMLValue(response, "occupation");
+	var employerNameValue = getXMLValue(response, "employerName");
 	var patientUpdatedValue = getXMLValue(response, "patientUpdated");
 	var personUpdatedValue = getXMLValue(response, "personUpdated");
 	var addressDepartment = getXMLValue( response, "addressDept" );
+	var addressWard = getXMLValue( response, "addressWard" );
+	var addressDistrict = getXMLValue( response, "addressDistrict" );
 	var education = getSelectIndexFor( "educationID", getXMLValue(response, "education"));
 	var nationality = getSelectIndexFor( "nationalityID", getXMLValue(response, "nationality"));
 	var otherNationality = getXMLValue( response, "otherNationality");
@@ -487,6 +541,7 @@ function  /*void*/ processSearchPopulateSuccess(xhr)
 	var healthRegion = getSelectIndexByTextFor( "healthRegionID", getXMLValue(response, "healthRegion"));
 	var healthDistrict = getXMLValue(response, "healthDistrict");
 	var guid = getXMLValue( response, "guid");
+	var externalIDValue = getXMLValue(response, "externalID");
 
 	setPatientInfo( nationalIDValue,
 					STValue,
@@ -501,19 +556,24 @@ function  /*void*/ processSearchPopulateSuccess(xhr)
 					genderValue,
 					patientTypeValue,
 					insuranceValue,
+					chartNumberValue,
 					occupationValue,
+					employerNameValue,
 					patientUpdatedValue,
 					personUpdatedValue,
 					motherInitialValue,
 					communeValue,
 					addressDepartment,
+					addressWard,
+					addressDistrict,
 					education,
 					nationality,
 					otherNationality,
 					maritialStatus,
 					healthRegion,
 					healthDistrict,
-					guid );
+					guid,
+					externalIDValue);
 
 }
 
@@ -535,6 +595,12 @@ function  /*void*/ processSearchPopulateFailure(xhr) {
 		//alert(xhr.responseText); // do something nice for the user
 }
 
+function unselectPatient() {
+	$jq("input[id^='sel_']").each(function(){
+		$jq(this).prop('checked', false);
+	});
+}
+
 function  /*void*/ clearPatientInfo(){
 	setPatientInfo();
 }
@@ -550,16 +616,21 @@ function /*void*/ clearErrors(){
 }
 
 function  /*void*/ setPatientInfo(nationalID, ST_ID, subjectNumber, lastName, firstName, aka, mother, street, city, dob, gender,
-		patientType, insurance, occupation, patientUpdated, personUpdated, motherInitial, commune, addressDept, educationId, nationalId, nationalOther,
-		maritialStatusId, healthRegionId, healthDistrictId, guid ) {
+		patientType, insurance, chartNumber, occupation, employerName, patientUpdated, personUpdated, motherInitial, commune, addressDept,
+		addressWard, addressDistrict, educationId, nationalId, nationalOther, maritialStatusId, healthRegionId, healthDistrictId, guid, externalID ) {
 
 	clearErrors();
 
 	if ( supportNationalID) { $("nationalID").value = nationalID == undefined ? "" : nationalID; }
 	if(supportSTNumber){ $("ST_ID").value = ST_ID == undefined ? "" : ST_ID; }
 	if(supportSubjectNumber){ $("subjectNumberID").value = subjectNumber == undefined ? "" : subjectNumber; }
+	if (!useSingleNameField) {
 	$("lastNameID").value = lastName == undefined ? "" : lastName;
 	$("firstNameID").value = firstName == undefined ? "" : firstName;
+	} else {
+		$("firstNameID").value = firstName == undefined ? "" : firstName;
+		$("firstNameID").value += lastName == undefined || lastName.length < 1 ? "" : " " + lastName;
+	}
 	if(supportAKA){$("akaID").value = aka == undefined ? "" : aka; }
 	if(supportMothersName){$("motherID").value = mother == undefined ? "" : mother; }
 	if(supportMothersInitial){$("motherInitialID").value = (motherInitial == undefined ? "" : motherInitial); }
@@ -567,10 +638,13 @@ function  /*void*/ setPatientInfo(nationalID, ST_ID, subjectNumber, lastName, fi
 	if(supportCity){$("cityID").value = city == undefined ? "" : city; }
 	if(supportCommune){$("communeID").value = commune == undefined ? "" : commune; }
 	if(supportInsurance){$("insuranceID").value = insurance == undefined ? "" : insurance; }
+	if(supportPatientChartNumber){$("chartNumberID").value = chartNumber == undefined ? "" : chartNumber; }
 	if(supportOccupation){$("occupationID").value = occupation == undefined ? "" : occupation; }
+	if(supportEmployerName){$("employerNameID").value = employerName == undefined ? "" : employerName; }
 	$("patientLastUpdated").value = patientUpdated == undefined ? "" : patientUpdated;
 	$("personLastUpdated").value = personUpdated == undefined ? "" : personUpdated;
 	$("patientGUID_ID").value = guid == undefined ? "" : guid;
+	if(supportExternalID){$("externalID").value = externalID == undefined ? "" : externalID; }
 	if(supportPatientNationality){
 		$("nationalityID").selectedIndex = nationalId == undefined ? 0 : nationalId; 
 		$("nationalityOtherId").value = nationalOther == undefined ? "" : nationalOther;}
@@ -601,9 +675,14 @@ function  /*void*/ setPatientInfo(nationalID, ST_ID, subjectNumber, lastName, fi
 
 	}
 
+	if(supportAddressWard){$("wardID").value = addressWard == undefined ? "" : addressWard; }
+	if(supportAddressDistrict){$("districtID").value = addressDistrict == undefined ? "" : addressDistrict; }
+
 	if (dob == undefined) {
 		$("dateOfBirthID").value = "";
+		<% if (!FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_AGE_VALUE_AND_UNITS)) { %>
 		$("age").value = "";
+		<% } %>
 	} else {
 		var dobElement = $("dateOfBirthID");
 		dobElement.value = dob;
@@ -626,14 +705,15 @@ function  /*void*/ updatePatientEditStatus() {
 
 	for(var i = 0; i < patientInfoChangeListeners.length; i++){
 			patientInfoChangeListeners[i]($("firstNameID").value,
-										  $("lastNameID").value,
+										  useSingleNameField ? null : $("lastNameID").value,
 										  $("genderID").value,
 										  $("dateOfBirthID").value,
 										  supportSTNumber ? $("ST_ID").value : "",
 										  supportSubjectNumber ? $("subjectNumberID").value : "",
 										  supportNationalID ? $("nationalID").value : "",
 										  supportMothersName ? $("motherID").value : null,
-										  $("patientPK_ID").value);
+										  $("patientPK_ID").value,
+										  supportExternalID ? $("externalID").value : "");
 
 		}
 
@@ -656,6 +736,7 @@ function /*void*/ makeDirty(){
 
 function  /*void*/  addPatient(){
 	clearPatientInfo();
+	unselectPatient();
 	clearErrors();
 	if(supportSTNumber){$("ST_ID").disabled = false;}
 	if(supportSubjectNumber){$("subjectNumberID").disabled = false;}
@@ -663,7 +744,7 @@ function  /*void*/  addPatient(){
 	setUpdateStatus( "add" );
 	
 	for(var i = 0; i < patientInfoChangeListeners.length; i++){
-			patientInfoChangeListeners[i]("", "", "", "", "", "", "", "", "");
+			patientInfoChangeListeners[i]("", "", "", "", "", "", "", "", "", "");
 		}
 }
 
@@ -712,11 +793,11 @@ function healthDistrictSuccess( xhr ){
 	}
 }
 
-function validatePhoneNumber( phoneElement){
-    validatePhoneNumberOnServer( phoneElement, processPhoneSuccess);
+function pt_validatePhoneNumber( phoneElement){
+    validatePhoneNumberOnServer( phoneElement, pt_processPhoneSuccess);
 }
 
-function  processPhoneSuccess(xhr){
+function  pt_processPhoneSuccess(xhr){
     //alert(xhr.responseText);
 
     var formField = xhr.responseXML.getElementsByTagName("formfield").item(0);
@@ -777,7 +858,7 @@ function  processSubjectNumberSuccess(xhr){
 	<nested:hidden name='<%=formName%>' property="patientProperties.guid" styleId="patientGUID_ID" />
     <logic:equal value="false" name="<%=formName%>" property="patientProperties.readOnly" >
 	<br/>
-	<div class="patientSearch">
+	<div class="patientSearch" style="clear: both;">
 		<hr style="width:100%" />
         <input type="button" value='<%= StringUtil.getMessageForKey("patient.new")%>' onclick="addPatient()">
 	</div>
@@ -785,10 +866,30 @@ function  processSubjectNumberSuccess(xhr){
 	<div id="PatientDetail"   >
 	<h2><bean:message key="patient.information"/></h2>
 	<table style="width:80%" border="0">
+	<% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_ORDER_URGENCY)) { %>
+	<logic:equal name="displayOrderItemsInPatientManagement" value="true">
+		<tr>
+			<td align="center" colspan="100%">
+				<bean:message key="patient.normal" />:
+				<html:radio name="<%=formName%>"
+							property="sampleOrderItems.orderUrgency"
+							style="margin:0"
+							styleId="orderUrgency"
+							value='<%= StringUtil.getContextualMessageForKey("patient.normal")%>' />
+				<bean:message key="patient.emergency" />:
+				<html:radio name="<%=formName%>"
+							property="sampleOrderItems.orderUrgency"
+							style="margin:0"
+							styleId="orderUrgency"
+							value='<%= StringUtil.getContextualMessageForKey("patient.emergency")%>' />
+			</td>
+		</tr>
+	</logic:equal>
+	<% } %>
     <tr>
         <% if( !supportSubjectNumber){ %>
         <td>
-            <bean:message key="patient.externalId"/>
+            <%=StringUtil.getContextualMessageForKey("patient.externalId")%>
             <% if( patientIDRequired){ %>
             <span class="requiredlabel">*</span>
             <% } %>
@@ -836,6 +937,18 @@ function  processSubjectNumberSuccess(xhr){
 
         </td>
         <% } %>
+        <% if (supportExternalID) { %>
+        <td style="text-align:right;">
+    	</td>
+    	<td>
+        	<nested:text name='<%=formName%>'
+                     	 property="patientProperties.externalId"
+                     	 onchange="validateSubjectNumber(this, 'externalId');updatePatientEditStatus();"
+                     	 styleId="externalID"
+                     	 styleClass="text"
+                     	 size="60" />
+    	</td>
+    	<% } %>
         <% if( supportNationalID ){ %>
         <td style="text-align:right;">
             <%=StringUtil.getContextualMessageForKey("patient.NationalID") %>:
@@ -859,6 +972,7 @@ function  processSubjectNumberSuccess(xhr){
     <%} %>
     <tr class="spacerRow" ><td colspan="2">&nbsp;</td></tr>
 	<tr>
+		<% if (!useSingleNameField) { %>
 		<td style="width: 220px">
 			<bean:message key="patient.name" />
 		</td>
@@ -892,6 +1006,23 @@ function  processSubjectNumberSuccess(xhr){
 					  onchange="updatePatientEditStatus();"
 					  styleId="firstNameID"/>
 		</td>
+		<% } else { %>
+		<td style="text-align:left;" colspan="2">
+			<bean:message key="patient.epiFullName" />
+			:
+			<% if( patientNamesRequired){ %>
+				<span class="requiredlabel">*</span>
+			<% } %>	
+		</td>
+		<td colspan="4">
+			<nested:text name='<%=formName%>'
+					  property="patientProperties.firstName"
+					  styleClass="text input-xxlarge"
+					  size="40"
+					  onchange="updatePatientEditStatus();"
+					  styleId="firstNameID"/>
+		</td>
+		<% } %>
 	</tr>
 	<% if(supportAKA){ %>
 	<tr>
@@ -943,12 +1074,18 @@ function  processSubjectNumberSuccess(xhr){
 	<%} %>
 	<tr class="spacerRow" ><td colspan="2">&nbsp;</td></tr>
 	<tr>
+		<% if (!useCompactLayout) { %>
 		<td >
 			<bean:message  key="person.streetAddress" />
 		</td>
 		<td style="text-align:right;">
 			<bean:message  key="person.streetAddress.street" />:
 		</td>
+		<% } else { %>
+		<td style="text-align:left;" colspan="2">
+			<bean:message  key="person.streetAddress.street" />:
+		</td>
+		<% } %>
 		<td>
 			<nested:text name='<%=formName%>'
 					  property="patientProperties.streetAddress"
@@ -957,20 +1094,39 @@ function  processSubjectNumberSuccess(xhr){
 					  styleClass="text"
 					  size="70" />
 		</td>
+	<% if (!useCompactLayout) { %>
 	</tr>
+	<% } %>
     <% if( supportCommune){ %>
+	<% if (!useCompactLayout) { %>
     <tr>
         <td></td>
+	<% } %>
         <td style="text-align:right;">
             <bean:message  key="person.commune" />:
         </td>
         <td>
+			<% if (!useCityPicklist) { %>
             <nested:text name='<%=formName%>'
                          property="patientProperties.commune"
                          onchange="updatePatientEditStatus();"
                          styleId="communeID"
                          styleClass="text"
                          size="30" />
+			<% } else { %>
+            <logic:equal value="false" name="<%=formName%>" property="patientProperties.readOnly" >
+				<html:select name='<%=formName%>'
+						 	 property="patientProperties.city"
+						 	 onchange="updatePatientEditStatus();if(linkDistrictsToCities)rebuildDistrictOptions('cityID', 'districtID');"
+					     	 styleId="cityID" >
+				<option value="0" ></option>
+				<html:optionsCollection name="<%=formName %>" property="patientProperties.cities" label="dictEntry" value="id" />
+				</html:select>
+			</logic:equal>
+			<logic:equal value="true" name="<%=formName%>" property="patientProperties.readOnly" >
+				<html:text name="<%=formName%>" property="patientProperties.city" styleId="cityID" />
+			</logic:equal>
+            <% } %>
         </td>
     </tr>
     <% } %>
@@ -1013,12 +1169,53 @@ function  processSubjectNumberSuccess(xhr){
 		</td>
 	</tr>
 	<% } %>
+	<% if( FormFields.getInstance().useField(Field.ADDRESS_WARD)){ %>
+	<tr>
+		<td style="text-align:left;" colspan="2">
+			<bean:message  key="person.address.ward" />:
+		</td>
+		<td>
+			<nested:text name='<%=formName%>'
+					  property="patientProperties.addressWard"
+					  onchange="updatePatientEditStatus();"
+					  styleId="wardID"
+					  styleClass="text"
+					  size="70" />
+		</td>
+	<% if (!useCompactLayout) { %>
+	</tr>
+	<% } %>
+	<% if( FormFields.getInstance().useField(Field.ADDRESS_DISTRICT)) { %>
+	<% if (!useCompactLayout) { %>
+	<tr>
+		<td></td>
+	<% } %>
+		<td style="text-align:right;">
+		    <%= StringUtil.getContextualMessageForKey("person.address.district") %>:
+		</td>
+		<td>
+            <logic:equal value="false" name="<%=formName%>" property="patientProperties.readOnly" >
+			<html:select name='<%=formName%>'
+					 	 property="patientProperties.addressDistrict"
+					 	 onchange="updatePatientEditStatus()"
+				     	 styleId="districtID" >
+			<option value="0" ></option>
+			<html:optionsCollection name="<%=formName %>" property="patientProperties.districts" label="dictEntry" value="id" />
+			</html:select>
+			</logic:equal>
+			<logic:equal value="true" name="<%=formName%>" property="patientProperties.readOnly" >
+			<html:text name="<%=formName%>" property="patientProperties.addressDistrict" styleId="districtID" />
+			</logic:equal>
+		</td>
+	</tr>
+	<% } %>
+	<% } %>
 	<% if( FormFields.getInstance().useField(Field.PatientPhone)){ %>
 		<tr>
 			<td>&nbsp;</td>
 			<td style="text-align:right;"><%= StringUtil.getContextualMessageForKey("person.phone") %>:</td>
 			<td>
-				<html:text styleId="patientPhone" name='<%= formName %>' property="patientProperties.phone" maxlength="35" onchange="validatePhoneNumber( this );" />
+				<html:text styleId="patientPhone" name='<%= formName %>' property="patientProperties.phone" maxlength="35" onchange="pt_validatePhoneNumber( this );" />
 			</td>
 		</tr>
 	<% } %>
@@ -1067,7 +1264,7 @@ function  processSubjectNumberSuccess(xhr){
 		<td>
 			<nested:text name='<%=formName%>'
 					  property="patientProperties.birthDateForDisplay"
-					  styleClass="text"
+					  styleClass="text input-small"
 					  size="20"
                       maxlength="10"
                       onkeyup="addDateSlashes(this,event);"
@@ -1075,6 +1272,35 @@ function  processSubjectNumberSuccess(xhr){
 					  styleId="dateOfBirthID" />
 			<div id="patientProperties.birthDateForDisplayMessage" class="blank" ></div>
 		</td>
+		<% if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_PATIENT_AGE_VALUE_AND_UNITS)) { %>
+		<logic:equal name="displayOrderItemsInPatientManagement" value="true">
+			<td style="text-align:right;">
+				<bean:message  key="patient.age" />:
+			</td>
+			<td>
+	            <html:text property="sampleOrderItems.patientAgeValue"
+						   name="<%=formName%>"
+	                       size="3"
+	                       maxlength="3"
+	                       onchange="sampleOrderValidateNumber( this, 1 ); updatePatientEditStatus();"
+	                       styleClass="text input-mini"
+	                       styleId="age"/>
+            	<logic:equal value="false" name="<%=formName%>" property="patientProperties.readOnly" >
+	            <html:select name="<%=formName%>"
+	            			 property="sampleOrderItems.patientAgeUnits"
+	            			 styleId="patientAgeUnits"
+	            			 styleClass="input-small">
+	            	<option><bean:message key="patient.age.year" /></option>
+	            	<option><bean:message key="patient.age.month" /></option>
+	            	<option><bean:message key="patient.age.day" /></option>
+	            </html:select>
+	            </logic:equal>
+            	<logic:equal value="true" name="<%=formName%>" property="patientProperties.readOnly" >
+				<html:text name="<%=formName%>" property="sampleOrderItems.patientAgeUnits" styleId="patientAgeUnits" />
+				</logic:equal>
+	    	</td>
+	    </logic:equal>
+		<% } else { %>
 		<td style="text-align:right;">
 			<bean:message  key="patient.age" />:
 		</td>
@@ -1084,10 +1310,11 @@ function  processSubjectNumberSuccess(xhr){
                        size="3"
                        maxlength="3"
                        onchange="handleAgeChange( this ); updatePatientEditStatus();"
-                       styleClass="text"
+                       styleClass="text input-mini"
                     styleId="age"/>
 			<div id="patientProperties.ageMessage" class="blank" ></div>
 		</td>
+		<% } %>
 		<td style="text-align:right;">
 			<bean:message  key="patient.gender" />:
 			<% if(patientGenderRequired){ %>
@@ -1109,13 +1336,68 @@ function  processSubjectNumberSuccess(xhr){
             </logic:equal>
 		</td>
 	</tr>
-	<% if( supportInsurance || supportPatientType){ %>
+	<% if (supportPatientClinicalDept || supportPatientDiagnosis) { %>
+	<logic:equal name="displayOrderItemsInPatientManagement" value="true">
+		<tr>
+			<% if (supportPatientClinicalDept) { %>
+	    	<td style="text-align:left;"><bean:message key="patient.department"/>:</td>
+    		<td>
+				<app:text name="<%=formName%>" 
+					  	  property="sampleOrderItems.patientClinicalDept" 
+	  				  	  onchange="makeDirty();"
+	  				  	  styleClass="text input-medium" 
+				  	  	  styleId="patientClinicalDept"/>
+				<html:hidden property="sampleOrderItems.patientClinicalDeptId" name="<%=formName%>" styleId="patientClinicalDeptId"/>
+    		</td>
+    		<% } if (supportPatientDiagnosis) { %>
+	    	<td style="text-align:right;"><bean:message key="patient.diagnosis"/>:</td>
+    		<td>
+				<html:text name='<%=formName%>'
+					   	   property="sampleOrderItems.patientDiagnosis"
+					   	   styleId="patientDiagnosis"
+					   	   styleClass="text input-medium"/>
+    		</td>
+    		<% } %>
+    	</tr>
+    </logic:equal>
+    <% } %>
+	<% if (supportPatientBedNumber || supportPatientRoomNumber) { %>
+	<logic:equal name="displayOrderItemsInPatientManagement" value="true">
+		<tr>
+			<% if (supportPatientBedNumber) { %>
+	    	<td style="text-align:left;"><bean:message key="patient.bedNumber"/>:</td>
+    		<td>
+				<html:text name='<%=formName%>'
+					   	   property="sampleOrderItems.patientBedNumber"
+					   	   styleId="patientBedNumber"
+					   	   styleClass="text input-small"/>
+    		</td>
+    		<% } if (supportPatientRoomNumber) { %>
+	    	<td style="text-align:right;"><bean:message key="patient.roomNumber"/>:</td>
+    		<td>
+				<html:text name='<%=formName%>'
+					   	   property="sampleOrderItems.patientRoomNumber"
+					   	   styleId="patientRoomNumber"
+					   	   styleClass="text input-small"/>
+    		</td>
+    		<% } %>
+    	</tr>
+  	</logic:equal>
+    <% } %>
+	<% if( supportInsurance || supportPatientType || supportPatientChartNumber ){ %>
 	<tr>
 		<% if( supportPatientType ){ %>
+		<% if (!useCompactLayout) { %>
 		<td style="text-align:right;">
 			<bean:message  key="patienttype.type" />:
 		</td>
+		<% } else { %>
+		<td style="text-align:left;">
+			<bean:message  key="patienttype.type" />:
+		</td>
+		<% } %>
 		<td>
+            <logic:equal value="false" name="<%=formName%>" property="patientProperties.readOnly" >
 			<nested:select name='<%=formName%>'
 						 property="patientProperties.patientType"
 						 onchange="updatePatientEditStatus();"
@@ -1123,6 +1405,10 @@ function  processSubjectNumberSuccess(xhr){
 				<option value="0" ></option>
 				<nested:optionsCollection name='<%=formName%>' property="patientProperties.patientTypes" label="description" value="type" />
 			</nested:select>
+			</logic:equal>
+			<logic:equal value="true" name="<%=formName%>" property="patientProperties.readOnly" >
+			<html:text name="<%=formName%>" property="patientProperties.patientType" styleId="patientTypeID" />
+			</logic:equal>
 		</td>
 		<% } if( supportInsurance ){ %>
 		<td style="text-align:right;">
@@ -1133,19 +1419,39 @@ function  processSubjectNumberSuccess(xhr){
 					  property="patientProperties.insuranceNumber"
 					  onchange="updatePatientEditStatus();"
 					  styleId="insuranceID"
-					  styleClass="text"
+					  styleClass="text input-medium"
 					  size="20" />
 		</td>
+		<% } if (!useCompactLayout) { %>
 		<td style="text-align:right;">
+		</td>
+		<% } if( supportPatientChartNumber ){ %>
+		<td style="text-align:right;">
+			<bean:message  key="patient.chartNumber" />:
+		</td>
+		<td>
+			<nested:text name='<%=formName%>'
+					  property="patientProperties.chartNumber"
+					  onchange="updatePatientEditStatus();"
+					  styleId="chartNumberID"
+					  styleClass="text input-medium"
+					  size="20" />
 		</td>
 		<% } %>
 
 	</tr>
-	<% } if( supportOccupation ){ %>
+	<% } if( supportOccupation || supportEmployerName ){ %>
 	<tr>
+		<% if (supportOccupation) { %>	
+		<% if (!useCompactLayout) { %>
 	<td style="text-align:right;">
 		<bean:message  key="patient.occupation" />:
 	</td>
+		<% } else { %>
+		<td style="text-align:left;">
+			<bean:message  key="patient.occupation" />:
+		</td>
+		<% } %>
 	<td>
 		<nested:text name='<%=formName%>'
 				  property="patientProperties.occupation"
@@ -1154,6 +1460,19 @@ function  processSubjectNumberSuccess(xhr){
 				  styleClass="text"
 				  size="20" />
 	</td>
+		<% } if (supportEmployerName) { %>
+		<td style="text-align:right;">
+			<bean:message  key="patient.employerName" />:
+		</td>
+		<td>
+			<nested:text name='<%=formName%>'
+					  property="patientProperties.employerName"
+					  onchange="updatePatientEditStatus();"
+					  styleId="employerNameID"
+					  styleClass="text"
+					  size="20" />
+		</td>
+		<% } %>
 	</tr>
 	<% } %>
 	<% if( FormFields.getInstance().useField(Field.PatientEducation)){ %>
@@ -1204,9 +1523,30 @@ function  processSubjectNumberSuccess(xhr){
 </div>
 
 <script type="text/javascript" >
+$jq(document).ready(function () {
+    if (linkDistrictsToCities) {
+    	var newSelect = document.createElement("select");
+    	$jq("#districtID option").each(function(){
+    		var newOption = new Option($jq(this).text(), $jq(this).val());
+    		newSelect.add(newOption);
+    	});
+    	originalDistrictList = newSelect.options;
+    }
+	if (supportPatientClinicalDept && $('patientClinicalDeptId')) {
+    	new AjaxJspTag.Autocomplete(
+        		"ajaxAutocompleteXML", {
+        			source: "patientClinicalDept",
+        			target: "patientClinicalDeptId",
+        			minimumCharacters: "1",
+        			className: "autocomplete",
+        			parameters: "dictionaryEntry={patientClinicalDept},dictionaryCategory=patientClinicalDept," + 
+        						"provider=DictionaryAutocompleteProvider,fieldName=dictEntryDisplayValue,idName=id"
+        		});    		
+	}
+});
 
 //overrides method of same name in patientSearch
-function selectedPatientChangedForManagement(firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, mother, pk ){
+function selectedPatientChangedForManagement(firstName, lastName, gender, DOB, stNumber, subjectNumber, nationalID, externalID, mother, pk ){
 	if( pk ){
 		getDetailedPatientInfo();
 		$("patientPK_ID").value = pk;
@@ -1220,9 +1560,11 @@ var registered = false;
 
 function registerPatientChangedForManagement(){
 	if( !registered ){
+		if (typeof addPatientChangedListener == typeof Function) {  // to avoid a JS error when this tile is included on the Audit Trail page
 		addPatientChangedListener( selectedPatientChangedForManagement );
 		registered = true;
 	}
+}
 }
 
 registerPatientChangedForManagement();

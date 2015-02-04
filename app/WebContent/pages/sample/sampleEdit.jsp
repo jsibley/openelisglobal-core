@@ -29,6 +29,12 @@
 	int nonEditableAccession = 0;
 	int maxAccessionLength = 0;
     boolean useCollectionDate = true;
+    boolean useSTNumber = false;
+    boolean useMothersName = false;
+    boolean patientRequired = false;
+    boolean supportExternalID = false;
+    boolean useModalSampleEntry = false;
+    boolean useRejectionInModalSampleEntry = false;
 %>
 <%
 	String path = request.getContextPath();
@@ -37,6 +43,12 @@
 	nonEditableAccession = AccessionNumberUtil.getInvarientLength();
 	maxAccessionLength = editableAccession + nonEditableAccession;
     useCollectionDate = FormFields.getInstance().useField( FormFields.Field.CollectionDate);
+    useSTNumber =  FormFields.getInstance().useField(FormFields.Field.StNumber);
+    useMothersName = FormFields.getInstance().useField(FormFields.Field.MothersName);
+    patientRequired = FormFields.getInstance().useField(FormFields.Field.PatientRequired);
+    supportExternalID = FormFields.getInstance().useField(FormFields.Field.EXTERNAL_ID);
+    useModalSampleEntry = FormFields.getInstance().useField( FormFields.Field.SAMPLE_ENTRY_MODAL_VERSION );
+    useRejectionInModalSampleEntry = FormFields.getInstance().useField( FormFields.Field.SAMPLE_ENTRY_REJECTION_IN_MODAL_VERSION );
 %>
 
 <script src="scripts/ui/jquery.ui.core.js?ver=<%= Versioning.getBuildNumber() %>"></script>
@@ -48,6 +60,7 @@
 <script src="scripts/customAutocomplete.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <script type="text/javascript" src="<%=basePath%>scripts/utilities.js?ver=<%= Versioning.getBuildNumber() %>" ></script>
 <script type="text/javascript" src="<%=basePath%>scripts/ajaxCalls.js?ver=<%= Versioning.getBuildNumber() %>" ></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jquery.selectlist.dev.js?ver=<%= Versioning.getBuildNumber() %>"></script>
 <link rel="stylesheet" href="css/jquery_ui/jquery.ui.all.css?ver=<%= Versioning.getBuildNumber() %>">
 <link rel="stylesheet" href="css/customAutocomplete.css?ver=<%= Versioning.getBuildNumber() %>">
 
@@ -57,6 +70,9 @@ var checkedCount = 0;
 var currentSampleType;
 var sampleIdStart = 0;
 var orderChanged = false;
+var invalidSampleElements = [];
+var useSampleRejection = <%=useRejectionInModalSampleEntry%>;
+var usePatientInfoModal = false;
 
 //This handles the case where sampleAdd.jsp tile is not used.  Will be overridden in sampleAdd.jsp
 function samplesHaveBeenAdded(){ return false;}
@@ -72,7 +88,40 @@ $jq(function() {
    	var maxAccessionNumber = $("maxAccessionNumber").value;
 	var lastDash = maxAccessionNumber.lastIndexOf('-');
    	sampleIdStart = maxAccessionNumber.substring(lastDash + 1);
+
+   	if (<%=useModalSampleEntry%>) {
+		$jq("#addSampleButton").attr("disabled", false);
+	}
 });
+
+function setSampleFieldValidity( valid, fieldName ){
+
+    if( valid )
+    {
+        setSampleFieldValid(fieldName);
+    }
+    else
+    {
+        setSampleFieldInvalid(fieldName);
+    }
+}
+
+function setSampleFieldInvalid(field)
+{
+    if( invalidSampleElements.indexOf(field) == -1 )
+    {
+        invalidSampleElements.push(field);
+    }
+}
+
+function setSampleFieldValid(field)
+{
+    var removeIndex = invalidSampleElements.indexOf( field );
+    if( removeIndex != -1 )
+    {
+        invalidSampleElements.splice( removeIndex,1);
+    }
+}
 
 function  /*void*/ setMyCancelAction(form, action, validate, parameters)
 {
@@ -115,8 +164,27 @@ function /*void*/ savePage(){
             return;
     }
 	window.onbeforeunload = null; // Added to flag that formWarning alert isn't needed.
-	loadSamples();
 	
+	<% if (!useModalSampleEntry) { %>
+	loadSamples(); //in addSample tile
+	<% } else { %>
+	loadXml(); //in sampleAddModal tile
+
+	// Clear any forced placeholder values before form submission
+	$jq('input[placeholder]').each(function() {
+		var input = $jq(this);
+		if (input.val() == input.attr('placeholder')) {
+			input.val('');
+		}
+	});
+	<% } %>
+
+	<% if (FormFields.getInstance().useField(FormFields.Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) { %>
+	// Merge requester work phone and extension (space separated) before submission
+	if ($('providerWorkPhoneExt').value.length > 0)
+		$('providerWorkPhoneID').value = $('providerWorkPhoneID').value + " " + $('providerWorkPhoneExt').value;
+	<% } %>
+
 	var form = document.forms[0];
 	form.action = "SampleEditUpdate.do";
 	form.submit();
@@ -323,7 +391,7 @@ function makeDirty(){
 <logic:equal name='<%=formName%>' property="isEditable" value="true" >
 	<h1><%=StringUtil.getContextualMessageForKey("sample.edit.tests") %></h1>
 </logic:equal>
-<table style="width:60%">
+<table style="width:<%=useModalSampleEntry ? "80" : "60"%>%">
 <caption><div><bean:message key="sample.edit.existing.tests"/></div>
     <span style="color: red"><small><small><%= cancelableResults ? StringUtil.getMessageForKey( "test.modify.static.warning" ) : "" %></small></small></span></caption>
 <tr>
@@ -369,7 +437,7 @@ function makeDirty(){
                        size ='12'
                        onchange="checkValidEntryDate(this, 'past', true);"
                        styleId='<%= "collectionDate_" + index %>'
-                       styleClass='text <%=isEditable? "" : " readOnly"%>'
+                       styleClass='text input-small <%=isEditable? "" : " readOnly"%>'
                        indexed="true"/>
             <% } %>
         </td>
@@ -382,7 +450,7 @@ function makeDirty(){
                        onkeyup='filterTimeKeys(this, event);'
                        onblur='checkValidTime(this, true);'
                        styleId='<%= "collectionTime_" + index %>'
-                       styleClass='text'
+                       styleClass='text input-mini'
                        indexed="true"/>
             <% } %>
         </td>
@@ -456,7 +524,14 @@ function makeDirty(){
 <h1><bean:message key="sample.entry.addSample" /></h1>
 
 <div id="samplesDisplay" class="colorFill" >
+<% if (useModalSampleEntry) { %>
+	<div id="sampleAddModal">
+		<tiles:insert attribute="addSampleModal"/>
+	</div>
+<% } else { %>
 	<tiles:insert attribute="addSample"/>
+	<br />
+<% } %>
 </div>
 </logic:equal>
 </logic:equal>
@@ -465,6 +540,10 @@ function makeDirty(){
 </logic:equal>
 
 <script type="text/javascript" >
+
+	function setSave() {
+		setSaveButton();
+	}
 
     function setSaveButton(){
         var newAccession = $("newAccessionNumber").value;

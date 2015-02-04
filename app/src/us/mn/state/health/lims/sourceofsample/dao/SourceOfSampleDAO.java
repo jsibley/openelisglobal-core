@@ -20,6 +20,7 @@ import java.util.List;
 import us.mn.state.health.lims.common.dao.BaseDAO;
 import us.mn.state.health.lims.common.exception.LIMSRuntimeException;
 import us.mn.state.health.lims.sourceofsample.valueholder.SourceOfSample;
+import us.mn.state.health.lims.typeofsample.dao.TypeOfSampleDAO.SampleDomain;
 
 /**
  * @author diane benz
@@ -49,6 +50,8 @@ public interface SourceOfSampleDAO extends BaseDAO {
 	//bugzilla 1474 added domain parm
 	public List getSources(String filter, String domain) throws LIMSRuntimeException;
 	
+	public List getSourcesForDomain(SampleDomain domain) throws LIMSRuntimeException;
+
 	public List getNextSourceOfSampleRecord(String id) throws LIMSRuntimeException;
 
 	public List getPreviousSourceOfSampleRecord(String id) throws LIMSRuntimeException;
@@ -58,4 +61,10 @@ public interface SourceOfSampleDAO extends BaseDAO {
 	
 	//bugzilla 1367
 	public SourceOfSample getSourceOfSampleByDescriptionAndDomain(SourceOfSample sos, boolean ignoreCase) throws LIMSRuntimeException;
+	
+	public String getDescriptionForSourceId(String sourceId); 
+
+	public String getDomainForSourceId(String id);
+
+	public SourceOfSample getSourceOfSampleById(String sourceOfSampleId);
 }

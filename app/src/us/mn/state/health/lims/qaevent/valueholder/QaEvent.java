@@ -15,6 +15,8 @@
 */
 package us.mn.state.health.lims.qaevent.valueholder;
 
+import java.util.Comparator;
+
 import us.mn.state.health.lims.common.util.StringUtil;
 import us.mn.state.health.lims.common.valueholder.BaseObject;
 import us.mn.state.health.lims.common.valueholder.ValueHolder;
@@ -23,6 +25,14 @@ import us.mn.state.health.lims.dictionary.valueholder.Dictionary;
 import us.mn.state.health.lims.test.valueholder.Test;
 
 public class QaEvent extends BaseObject {
+
+	private static final long serialVersionUID = 1L;
+
+	public class ComparatorLocalizedName implements Comparator<QaEvent> {
+        public int compare(QaEvent o1, QaEvent o2) {
+            return o1.getLocalizedName().compareTo(o2.getDefaultLocalizedName());
+        }
+    }
 
 	private String id;
 

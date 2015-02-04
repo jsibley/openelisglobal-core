@@ -93,6 +93,10 @@ public interface IActionConstants {
 	public static final String FWD_SUCCESS_OTHER = "successother";
 	public static final String FWD_FAIL_OTHER = "failother";
 
+	// for specific label printing errors
+	public static final String FWD_FAIL_MAX_LABELS_EXCEED = "failMaxLabels";
+	public static final String FWD_FAIL_BAD_PRINTER = "failPrinter";
+
 	//bugzilla 2028 routing to QA Events Entry from Results/Batch Results Entry Update Action if UNSATISFACTORY results
 	public static final String FWD_SUCCESS_QA_EVENTS_ENTRY = "successQaEventsEntry";
 	public static final String UNSATISFACTORY_RESULT = "UNSATISFACTORY";
@@ -275,6 +279,7 @@ public interface IActionConstants {
 	public static final String FORM_FIELD_SET_CDI = "CDI";
 	public static final String FORM_FIELD_SET_CI_IPCI = "CI_IPCI";
 	public static final String FORM_FIELD_SET_CI_REGIONAL = "CI_REGIONAL";
+	public static final String FORM_FIELD_SET_VN_APHL = "VN_APHL";
 
 	public static final String ACTION_REFINEMENT_SEPARATOR = ":";
 

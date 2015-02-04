@@ -31,7 +31,6 @@ import us.mn.state.health.lims.common.daoimpl.BaseDAOImpl;
 import us.mn.state.health.lims.common.exception.LIMSRuntimeException;
 import us.mn.state.health.lims.common.log.LogEvent;
 import us.mn.state.health.lims.hibernate.HibernateUtil;
-import us.mn.state.health.lims.sampleorganization.valueholder.SampleOrganization;
 import us.mn.state.health.lims.sampleproject.dao.SampleProjectDAO;
 import us.mn.state.health.lims.sampleproject.valueholder.SampleProject;
 
@@ -44,7 +43,7 @@ import us.mn.state.health.lims.sampleproject.valueholder.SampleProject;
  */
 public class SampleProjectDAOImpl extends BaseDAOImpl implements SampleProjectDAO {
 
-	public void deleteData(List sampleProjs) throws LIMSRuntimeException {
+	public void deleteData(List sampleProjs, String activeUserId) throws LIMSRuntimeException {
 		//add to audit trail
 		try {
 			AuditTrailDAO auditDAO = new AuditTrailDAOImpl();
@@ -54,11 +53,10 @@ public class SampleProjectDAOImpl extends BaseDAOImpl implements SampleProjectDA
 				SampleProject oldData = (SampleProject)readSampleProject(data.getId());
 				SampleProject newData = new SampleProject();
 
-				String sysUserId = data.getSysUserId();
 				String event = IActionConstants.AUDIT_TRAIL_DELETE;
 				//bugzilla 2104 change to SAMPLE_PROJECTS instead of SAMPLE_PROJECT
 				String tableName = "SAMPLE_PROJECTS";
-				auditDAO.saveHistory(newData,oldData,sysUserId,event,tableName);
+				auditDAO.saveHistory(newData,oldData,activeUserId,event,tableName);
 			}
 		}  catch (Exception e) {
 			//bugzilla 2154
@@ -213,6 +211,34 @@ public class SampleProjectDAOImpl extends BaseDAOImpl implements SampleProjectDA
 		}
 
 		return sampleProjects.isEmpty() ? null : sampleProjects.get(0);
+	}
+	
+    @Override
+    public void insertOrUpdateData(SampleProject sampleProject) throws LIMSRuntimeException {
+        if (sampleProject.getLastupdated() == null) {
+            insertData(sampleProject);
+        } else {
+            updateData(sampleProject);
+        }
+    }
+
+	@SuppressWarnings("unchecked")
+	public List<SampleProject> getSampleProjectListBySampleId(String id) throws LIMSRuntimeException {
+		List<SampleProject> sampleProjects = null;
+
+		try {
+			String sql = "from SampleProject sp where sp.sample.id = :sampleId order by sp.id";
+			Query query = HibernateUtil.getSession().createQuery(sql);
+			query.setInteger("sampleId", Integer.parseInt(id));
+
+			sampleProjects = query.list();
+			closeSession();
+
+		} catch (Exception e) {
+			handleException(e, "getSampleProjectListBySampleId");
+		}
+
+		return sampleProjects.isEmpty() ? null : sampleProjects;
 	}
 	
     @SuppressWarnings("unchecked")

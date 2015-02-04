@@ -85,7 +85,7 @@ function handlePassword2( password2 ){
  	if( !password1.value.blank() && !password2.value.blank() && password1.value != password2.value ){
  		password2.style.borderColor = "red";
 		password1.style.borderColor = "red";
- 		alert( '<%= StringUtil.getMessageForKey("errors.password.match")%>');
+ 		alert( "<%= StringUtil.getMessageForKey("errors.password.match")%>");
  	}else{
  		password2.style.borderColor = "";
 		password1.style.borderColor = "";
@@ -215,8 +215,8 @@ function /*void*/ requiredFieldUpdated( field){
 							<bean:message key="login.account.locked" />
 						</td>
 						<td>
-							<html:radio name="<%=formName %>"property="accountLocked" value="Y" onchange="makeDirty();">Y</html:radio>
-							<html:radio name="<%=formName %>"property="accountLocked" value="N" onchange="makeDirty();">N</html:radio>
+							<html:radio name="<%=formName %>" property="accountLocked" value="Y" onchange="makeDirty();">Y</html:radio>
+							<html:radio name="<%=formName %>" property="accountLocked" value="N" onchange="makeDirty();">N</html:radio>
 						</td>
 		</tr>
 		<tr>
@@ -224,8 +224,8 @@ function /*void*/ requiredFieldUpdated( field){
 							<bean:message key="login.account.disabled" />
 						</td>
 						<td>
-							<html:radio name="<%=formName %>"property="accountDisabled" value="Y" onchange="makeDirty();">Y</html:radio>
-							<html:radio name="<%=formName %>"property="accountDisabled" value="N" onchange="makeDirty();">N</html:radio>
+							<html:radio name="<%=formName %>" property="accountDisabled" value="Y" onchange="makeDirty();">Y</html:radio>
+							<html:radio name="<%=formName %>" property="accountDisabled" value="N" onchange="makeDirty();">N</html:radio>
 						</td>
 		</tr>
 		<tr>
@@ -233,8 +233,8 @@ function /*void*/ requiredFieldUpdated( field){
 							<bean:message key="systemuser.isActive" />
 						</td>
 						<td>
-							<html:radio name="<%=formName %>"property="accountActive" value="Y" onchange="makeDirty();">Y</html:radio>
-							<html:radio name="<%=formName %>"property="accountActive" value="N" onchange="makeDirty();">N</html:radio>
+							<html:radio name="<%=formName %>" property="accountActive" value="Y" onchange="makeDirty();">Y</html:radio>
+							<html:radio name="<%=formName %>" property="accountActive" value="N" onchange="makeDirty();">N</html:radio>
 						</td>
 		</tr><tr>
 			<td>&nbsp;</td>

@@ -35,6 +35,8 @@ function /*void*/ setLanguage( language ){
 	    update = confirm("Changing the language will affect all logged in users ");
 	} else if( language == 'fr-FR' ){
 		update = confirm( "Modification de la langue affectera tous les utilisateurs enregistrés");
+	} else if( language == 'vi-VN' ){
+		update = confirm( "Changing the language will affect all logged in users ");
 	}
 	
 	if( update ){
@@ -123,6 +125,6 @@ function displayHelp(){
 
 
 <% if( languageSwitch && "loginForm".equals((String)request.getAttribute(IActionConstants.FORM_NAME)) ){ %>
-  <div id="language-chooser"><a href="#" onclick="setLanguage('fr-FR')">Français</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" onclick="setLanguage('en_US')">English</a></div>
+  <div id="language-chooser"><a href="#" onclick="setLanguage('fr-FR')">Français</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" onclick="setLanguage('en_US')">English</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" onclick="setLanguage('vi-VN')">Việt</a></div>
 <% } %>
 

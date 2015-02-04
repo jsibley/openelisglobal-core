@@ -493,7 +493,7 @@ public class HumanSampleTwoUpdateAction extends BaseAction {
 						- decreaseOIIndexBy++);
 
 			}
-			sampleProjectDAO.deleteData(listOfSampleProjectObjectsToDelete);
+			sampleProjectDAO.deleteData(listOfSampleProjectObjectsToDelete, sysUserId);
 		}
 
 		if (newSampleProjects != null) {

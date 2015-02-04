@@ -33,7 +33,7 @@ import java.util.List;
 abstract public class PatientSearchWorker {
 
 	abstract public String createSearchResultXML(String lastName, String firstName, String STNumber, String subjectNumber, String nationalID,
-			String patientID, String guid, StringBuilder xml);
+			String externalID, String patientID, String guid, StringBuilder xml);
 
 	public void appendSearchResultRow(PatientSearchResults searchResults, StringBuilder xml) {
 
@@ -55,6 +55,7 @@ abstract public class PatientSearchWorker {
 		XMLUtil.appendKeyValue("gender", result.getGender(), xml);
 		XMLUtil.appendKeyValue("dob", PatientUtil.getDisplayDOBForPatient(result.getPatientID(), result.getDOB()), xml);
 		XMLUtil.appendKeyValue("nationalID", result.getNationalId(), xml);
+		XMLUtil.appendKeyValue("externalID", result.getExternalId(), xml);
 		XMLUtil.appendKeyValue("ST", result.getSTNumber(), xml);
 		XMLUtil.appendKeyValue("subjectNumber", result.getSubjectNumber(), xml);
 		String mothersName = GenericValidator.isBlankOrNull(result.getMothersName()) ? identityMap.getIdentityValue(identityList, "MOTHER") : result.getMothersName();

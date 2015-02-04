@@ -16,6 +16,8 @@
  */
 package us.mn.state.health.lims.common.provider.validation;
 
+import us.mn.state.health.lims.common.formfields.FormFields;
+import us.mn.state.health.lims.common.formfields.FormFields.Field;
 import us.mn.state.health.lims.common.services.PhoneNumberService;
 import us.mn.state.health.lims.common.servlet.validation.AjaxServlet;
 import us.mn.state.health.lims.common.util.StringUtil;
@@ -23,6 +25,7 @@ import us.mn.state.health.lims.common.util.StringUtil;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 
 /**
@@ -51,7 +54,11 @@ public class PhoneNumberValidationProvider extends BaseValidationProvider {
 
 		String returnData = VALID;
         if( !valid){
-			returnData = StringUtil.getMessageForKey("phone.number.format.error", PhoneNumberService.getPhoneFormat());
+        	if (FormFields.getInstance().useField(Field.SAMPLE_ENTRY_REQUESTER_WORK_PHONE_AND_EXT)) {
+        		returnData = StringUtil.getMessageForKey("phone.number.format.error.no.ext", PhoneNumberService.getPhoneFormat());
+        	} else {
+        		returnData = StringUtil.getMessageForKey("phone.number.format.error", PhoneNumberService.getPhoneFormat());        		
+        	}
 		}
 
 		response.setCharacterEncoding("UTF-8");

@@ -26,6 +26,7 @@ public class Localization extends BaseObject{
     String description;
     String english;
     String french;
+    String vietnamese;
 
     public String getId(){
         return id;
@@ -41,6 +42,14 @@ public class Localization extends BaseObject{
 
     public void setFrench( String french ){
         this.french = french;
+    }
+
+    public String getVietnamese(){
+        return vietnamese;
+    }
+
+    public void setVietnamese( String vietnamese ){
+        this.vietnamese = vietnamese;
     }
 
     public String getEnglish(){
